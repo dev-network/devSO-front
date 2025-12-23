@@ -8,7 +8,9 @@ export default function RecruitDetailPage() {
 	const [recruit, setRecruit] = useState(null);
 
 	useEffect(() => {
-		console.log("useEffect 실행!", id);
+		// StrictMode로 개발 환경에서 viewCount 2씩 증가
+		// 배포 후 정상작동 된다고 함
+		// console.log("useEffect 실행!", id);
 		fetchRecruit();
 	}, [id]);
 

@@ -108,5 +108,13 @@ export const createRecruit = (data) => api.post("/api/recruits", data);
 export const updateRecruit = (id, data) => api.put(`/api/recruits/${id}`, data);
 export const deleteRecruit = (id) => api.delete(`/api/recruits/${id}`);
 export const toggleBookmark = (id) => api.post(`/api/recruits/${id}/bookmark`);
+// enum
+export const getPositions = () => api.get("/api/recruits/enum/position");
+export const getTypes = () => api.get("/api/recruits/enum/type");
+export const getProgress = () => api.get("/api/recruits/enum/progress-type");
+export const getTechStacks = () => api.get("/api/recruits/enum/tech-stacks");
+export const getContactTypes = () => api.get("/api/recruits/enum/contact");
+export const getDurationTypes = () => api.get("/api/recruits/enum/duration");
+export const getMemberCount = () => api.get("/api/recruits/enum/memberCount");
 
 export default api;
