@@ -264,7 +264,7 @@ export default function RecruitCreatePage() {
 								type="date"
 								value={deadLine}
 								onChange={(e) => setDeadLine(e.target.value)}
-								className="w-full border px-3 py-[0.38rem] rounded-[0.375rem] focus:outline-none focus:ring-1 focus:ring-blue-500"
+								className="w-full border px-3 py-[0.38rem] rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
 								required
 								min={today}
 							/>
@@ -307,7 +307,7 @@ export default function RecruitCreatePage() {
 								value={contactInfo}
 								placeholder="카카오톡 링크, 이메일 등"
 								onChange={(e) => setContactInfo(e.target.value)}
-								className="w-full border px-3 py-[0.38rem] rounded-[0.375rem] focus:outline-none focus:ring-1 focus:ring-blue-500"
+								className="w-full border px-3 py-[0.38rem] rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
 								required
 							/>
 						</div>
