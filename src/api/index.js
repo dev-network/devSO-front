@@ -107,5 +107,6 @@ export const getRecruitDetail = (id) => api.get(`/api/recruits/${id}`);
 export const createRecruit = (data) => api.post("/api/recruits", data);
 export const updateRecruit = (id, data) => api.put(`/api/recruits/${id}`, data);
 export const deleteRecruit = (id) => api.delete(`/api/recruits/${id}`);
+export const toggleBookmark = (id) => api.post(`/api/recruits/${id}/bookmark`);
 
 export default api;

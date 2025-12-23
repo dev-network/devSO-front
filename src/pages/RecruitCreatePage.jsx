@@ -9,8 +9,13 @@ export default function RecruitCreatePage() {
 
 	const handleSubmit = async (e) => {
 		e.preventDefault();
-		await createRecruit({ title, content });
-		navigate("/recruits"); // 작성 후 목록 페이지로 이동
+		try {
+			const res = await createRecruit({ title, content });
+			const newId = res.data.data.id; // 생성된 게시글 id
+			navigate(`/recruits/${newId}`);
+		} catch (err) {
+			console.error("모집글 작성 실패:", err);
+		}
 	};
 
 	return (
