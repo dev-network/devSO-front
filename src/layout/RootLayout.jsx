@@ -1,9 +1,13 @@
 import React from "react";
 import { NavLink, Outlet } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
+import { useChat } from "../contexts/ChatContext";
+import ChatBubble from "../components/ChatBubble";
+import ChatWidget from "../components/ChatWidget";
 
 export default function RootLayout() {
-  const { isAuthenticated, logout, user } = useAuth();
+  const { isAuthenticated, logout } = useAuth();
+  const { toggleChat } = useChat();
 
   const navLinkStyle = ({ isActive }) => ({
     marginRight: "15px",
@@ -12,7 +16,7 @@ export default function RootLayout() {
     textDecoration: "none",
   });
 
-  const logoutButtonStyle = {
+  const buttonStyle = {
     marginRight: "15px",
     fontWeight: "normal",
     color: "black",
@@ -24,9 +28,13 @@ export default function RootLayout() {
     fontSize: "inherit",
   };
 
+  const handleChatClick = (e) => {
+    e.preventDefault();
+    toggleChat();
+  };
+
   return (
     <div>
-      {/* 상단 메뉴바 */}
       <nav style={{ padding: "10px", backgroundColor: "#eee" }}>
         <NavLink to="/" style={navLinkStyle}>
           SNS
@@ -37,10 +45,11 @@ export default function RootLayout() {
             <NavLink to="/profile" style={navLinkStyle}>
               프로필
             </NavLink>
-            <NavLink to="/chat" style={navLinkStyle}>
+            {/* This link now opens the chat widget */}
+            <a href="#" onClick={handleChatClick} style={navLinkStyle({ isActive: false })}>
               채팅
-            </NavLink>
-            <button onClick={logout} style={logoutButtonStyle}>
+            </a>
+            <button onClick={logout} style={buttonStyle}>
               로그아웃
             </button>
           </>
@@ -56,10 +65,17 @@ export default function RootLayout() {
         )}
       </nav>
 
-      {/* 자식 페이지 렌더링 위치 */}
       <div style={{ padding: "20px" }}>
         <Outlet />
       </div>
+
+      {/* Render chat components if authenticated */}
+      {isAuthenticated && (
+        <>
+          <ChatBubble />
+          <ChatWidget />
+        </>
+      )}
     </div>
   );
 }

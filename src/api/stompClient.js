@@ -1,8 +1,8 @@
-import { Client } from '@stomp/stompjs';
-import { API_URL } from './index'; // API_URL을 가져옵니다.
+import { Client } from "@stomp/stompjs";
+import { API_URL } from "./index";
 
 let stompClient = null;
-let subscriptions = {}; // 구독 정보를 저장할 객체
+let subscriptions = {};
 
 export const connectStomp = (onConnect, onError) => {
   if (stompClient && stompClient.connected) {
@@ -10,34 +10,34 @@ export const connectStomp = (onConnect, onError) => {
     return;
   }
 
-  // API_URL (예: http://localhost:8080)을 WebSocket URL (예: ws://localhost:8080/ws-chat)로 변환
-  const wsUrl = API_URL.replace(/^http/, 'ws') + '/ws-chat';
+  const wsUrl = API_URL.replace(/^http/, "ws") + "/ws-chat";
 
   stompClient = new Client({
     brokerURL: wsUrl,
     connectHeaders: {
-      'Authorization': `Bearer ${localStorage.getItem('token')}` // JWT 토큰을 헤더에 추가
+      Authorization: `Bearer ${localStorage.getItem("token")}`,
     },
     debug: function (str) {
-      console.log(str);
+      //console.log(str);
     },
     reconnectDelay: 5000,
     heartbeatIncoming: 4000,
     heartbeatOutgoing: 4000,
     onConnect: () => {
-      console.log('STOMP Connected');
+      console.log("STOMP Connected");
       onConnect();
     },
-    onStompError: (frame) => {
-      console.error('STOMP Error:', frame);
+    onStompError: frame => {
+      console.error("STOMP Error:", frame);
       if (onError) onError(frame);
     },
     onWebSocketClose: () => {
-        console.log('WebSocket Closed');
+      console.log("WebSocket Closed");
     },
     onDisconnect: () => {
-        console.log('STOMP Disconnected');
-    }
+      console.log("STOMP Disconnected");
+      subscriptions = {}; // Disconnect 시 모든 구독 초기화
+    },
   });
 
   stompClient.activate();
@@ -49,13 +49,13 @@ export const disconnectStomp = () => {
     subscriptions = {};
     stompClient.deactivate();
     stompClient = null;
-    console.log('STOMP Disconnected.');
+    console.log("STOMP Disconnected.");
   }
 };
 
 export const subscribeToRoom = (roomId, onMessageReceived) => {
   if (!stompClient || !stompClient.connected) {
-    console.error('STOMP client not connected.');
+    console.error("STOMP client not connected.");
     return;
   }
   const destination = `/topic/room.${roomId}`;
@@ -63,7 +63,7 @@ export const subscribeToRoom = (roomId, onMessageReceived) => {
     console.log(`Already subscribed to ${destination}`);
     return subscriptions[destination];
   }
-  const subscription = stompClient.subscribe(destination, (message) => {
+  const subscription = stompClient.subscribe(destination, message => {
     onMessageReceived(JSON.parse(message.body));
   });
   subscriptions[destination] = subscription;
@@ -71,7 +71,25 @@ export const subscribeToRoom = (roomId, onMessageReceived) => {
   return subscription;
 };
 
-export const unsubscribeFromRoom = (roomId) => {
+// 새로운 함수: 특정 토픽을 구독하는 범용 함수
+export const subscribeToTopic = (topic, onMessageReceived) => {
+  if (!stompClient || !stompClient.connected) {
+    console.error("STOMP client not connected for topic subscription.");
+    return;
+  }
+  if (subscriptions[topic]) {
+    console.log(`Already subscribed to topic ${topic}`);
+    return subscriptions[topic];
+  }
+  const subscription = stompClient.subscribe(topic, message => {
+    onMessageReceived(JSON.parse(message.body));
+  });
+  subscriptions[topic] = subscription;
+  console.log(`Subscribed to topic ${topic}`);
+  return subscription;
+};
+
+export const unsubscribeFromRoom = roomId => {
   const destination = `/topic/room.${roomId}`;
   if (subscriptions[destination]) {
     subscriptions[destination].unsubscribe();
@@ -80,16 +98,25 @@ export const unsubscribeFromRoom = (roomId) => {
   }
 };
 
+// 새로운 함수: 특정 토픽을 구독 해제하는 범용 함수
+export const unsubscribeFromTopic = topic => {
+  if (subscriptions[topic]) {
+    subscriptions[topic].unsubscribe();
+    delete subscriptions[topic];
+    console.log(`Unsubscribed from topic ${topic}`);
+  }
+};
+
 export const sendChatMessage = (roomId, message) => {
   if (stompClient && stompClient.connected) {
     stompClient.publish({
-      destination: '/app/chat/send',
+      destination: "/app/chat/send",
       body: JSON.stringify({ roomId, message }),
       headers: {
-        'Authorization': `Bearer ${localStorage.getItem('token')}` // JWT 토큰을 헤더에 추가
-      }
+        Authorization: `Bearer ${localStorage.getItem("token")}`,
+      },
     });
   } else {
-    console.error('STOMP client not connected, cannot send message.');
+    console.error("STOMP client not connected, cannot send message.");
   }
 };
