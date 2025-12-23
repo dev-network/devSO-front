@@ -157,7 +157,7 @@ export default function RecruitDetailPage() {
 				<h2 className="text-xl font-bold mb-8 text-gray-900">프로젝트 소개</h2>
 				<div className="ql-container ql-snow" style={{ border: "none" }}>
 					<div
-						className="ql-editor !p-0 text-gray-700 leading-8 text-[17px]"
+						className="ql-editor p-0! text-gray-700 leading-8 text-[17px]"
 						dangerouslySetInnerHTML={{ __html: recruit.content }}
 					/>
 				</div>
