@@ -9,12 +9,12 @@ export default function RootLayout() {
   const { isAuthenticated, logout } = useAuth();
   const { toggleChat } = useChat();
 
-  const navLinkStyle = ({ isActive }) => ({
-    marginRight: "15px",
-    fontWeight: isActive ? "bold" : "normal",
-    color: isActive ? "blue" : "black",
-    textDecoration: "none",
-  });
+	const navLinkStyle = ({ isActive }) => ({
+		marginRight: "15px",
+		fontWeight: isActive ? "bold" : "normal",
+		color: isActive ? "blue" : "black",
+		textDecoration: "none",
+	});
 
   const buttonStyle = {
     marginRight: "15px",
@@ -48,6 +48,9 @@ export default function RootLayout() {
             <NavLink to="/profile" style={navLinkStyle}>
               프로필
             </NavLink>
+            <NavLink to="/recruits" style={navLinkStyle}>
+							팀원 모집
+						</NavLink>
             <NavLink to="/posts/new" style={navLinkStyle}>
               새 글 작성
             </NavLink>

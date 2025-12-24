@@ -73,6 +73,18 @@ const router = createBrowserRouter([
         path: "oauth/kakao/callback",
         element: <KakaoCallback />,
       },
+			{
+				path: "recruits",
+				element: <RecruitMainPage />,
+			},
+			{
+				path: "recruits/create",
+				element: <RecruitCreatePage />,
+			},
+			{
+				path: "recruits/:id",
+				element: <RecruitDetailPage />,
+			},
       {
         element: <PrivateRoutes />,
         children: [
