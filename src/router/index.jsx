@@ -5,6 +5,8 @@ import LoginPage from "../pages/LoginPage.jsx";
 import KakaoCallback from "../pages/KakaoCallback.jsx";
 import ChatListPage from "../pages/ChatListPage.jsx"; // ChatListPage import
 import ChatRoomPage from "../pages/ChatRoomPage.jsx"; // ChatRoomPage import
+import ProfilePage from "../pages/ProfilePage.jsx";
+import ProfileEditPage from "../pages/ProfileEditPage.jsx";
 import { PublicRoute, PrivateRoutes } from "./ProtectedRoute.jsx";
 import { AuthProvider } from "../contexts/AuthContext.jsx";
 
@@ -48,6 +50,18 @@ const router = createBrowserRouter([
           {
             path: "chat/:roomId",
             element: <ChatRoomPage />,
+          },
+          {
+            path: "profile/edit", 
+            element: <ProfileEditPage />,
+          },
+          {
+            path: "profile", 
+            element: <ProfilePage />,
+          },
+          {
+            path: "profile/:username", 
+            element: <ProfilePage />,
           },
         ],
       },
