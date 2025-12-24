@@ -12,21 +12,25 @@ import { Icon } from "@iconify/react"; // ✅ Iconify 추가
 import "react-quill-new/dist/quill.snow.css";
 
 const LABEL_MAP = {
+	// DB: STUDY, PROJECT
 	type: {
-		STUDY: "스터디",
-		PROJECT: "프로젝트",
+		1: "스터디",
+		2: "프로젝트",
 	},
+	// DB: ONLINE, OFFLINE, HYBRID (데이터에 HYBRID가 있음)
 	progressType: {
 		ONLINE: "온라인",
 		OFFLINE: "오프라인",
 		HYBRID: "온/오프라인",
 	},
+	// DB: OPEN_TALK, EMAIL, GOOGLE_FORM, OTHER
 	contactMethod: {
 		OPEN_TALK: "오픈 톡",
 		EMAIL: "이메일",
 		GOOGLE_FORM: "구글 폼",
 		OTHER: "기타",
 	},
+	// 모집 인원 (데이터상 숫자로 보임: 4, 2, 3 등)
 	totalCount: {
 		1: "1명",
 		2: "2명",
@@ -39,6 +43,7 @@ const LABEL_MAP = {
 		9: "9명",
 		10: "10명 이상",
 	},
+	// DB: ONE_MONTH ~ SIX_MONTHS, LONG_TERM
 	duration: {
 		ONE_MONTH: "1개월",
 		TWO_MONTHS: "2개월",
@@ -48,6 +53,7 @@ const LABEL_MAP = {
 		SIX_MONTHS: "6개월",
 		LONG_TERM: "장기",
 	},
+	// 모집 분야 (이전과 동일하게 유지하거나, DB에 영문으로 들어온다면 수정 필요)
 	positions: {
 		0: "전체",
 		1: "백엔드",
