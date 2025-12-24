@@ -108,6 +108,7 @@ export const createRecruit = (data) => api.post("/api/recruits", data);
 export const updateRecruit = (id, data) => api.put(`/api/recruits/${id}`, data);
 export const deleteRecruit = (id) => api.delete(`/api/recruits/${id}`);
 export const toggleBookmark = (id) => api.post(`/api/recruits/${id}/bookmark`);
+export const toggleStatus = (id) => api.put(`/api/recruits/${id}/status`);
 // enum
 export const getPositions = () => api.get("/api/recruits/enum/position");
 export const getTypes = () => api.get("/api/recruits/enum/type");

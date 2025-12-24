@@ -1,7 +1,5 @@
 import React from "react";
 import { Icon } from "@iconify/react";
-import bookmarkOutline from "@iconify/icons-mdi/bookmark-outline";
-import bookmarkFilled from "@iconify/icons-mdi/bookmark";
 
 const RecruitCard = ({
 	recruit = {},
@@ -12,7 +10,6 @@ const RecruitCard = ({
 		type,
 		positions = [],
 		title = "",
-		content = "",
 		stacks = [],
 		username = "익명",
 		viewCount = 0,
@@ -22,31 +19,23 @@ const RecruitCard = ({
 	} = recruit;
 
 	// ---------------------------
-	// 서버에서 오는 type/position/stacks 처리
+	// 데이터 변환 로직 (기존과 동일)
 	// ---------------------------
 	const typeKey =
-		type !== undefined && type !== null
-			? typeof type === "string"
-				? type
-				: type.label !== undefined
-				? String(type.label)
-				: String(type)
-			: "";
+		type?.label !== undefined ? String(type.label) : String(type ?? "");
 
-	const positionKey =
-		Array.isArray(positions) && positions.length > 0
-			? positions.map((p) =>
-					p !== undefined && p !== null
-						? typeof p === "string"
-							? p
-							: p.label !== undefined
-							? String(p.label)
-							: String(p)
-						: ""
-			  )
-			: [];
+	const positionKey = Array.isArray(positions)
+		? positions.map((p) =>
+				p?.label !== undefined ? String(p.label) : String(p ?? "")
+		  )
+		: [];
 
-	const typeLabel = { 1: "📚 스터디", 2: "📁 프로젝트" };
+	const typeLabel = {
+		1: "📚 스터디",
+		2: "📁 프로젝트",
+		STUDY: "📚 스터디",
+		PROJECT: "📁 프로젝트",
+	};
 	const positionLabel = {
 		0: "전체",
 		1: "프론트엔드",
@@ -63,8 +52,7 @@ const RecruitCard = ({
 	const formattedDeadline = deadLine
 		? new Date(deadLine).toLocaleDateString("ko-KR")
 		: "미정";
-
-	const typeClass = typeKey.toLowerCase();
+	const typeClass = String(typeKey).toLowerCase();
 
 	return (
 		<div
@@ -84,12 +72,9 @@ const RecruitCard = ({
 			</div>
 
 			<div className="deadline">마감일 | {formattedDeadline}</div>
-
 			<h3 className="card-title">{title}</h3>
 
-			{/* Tags Section */}
 			<div className="tags">
-				{/* Positions */}
 				{positionKey.length > 0 && (
 					<div
 						className="positions"
@@ -103,7 +88,6 @@ const RecruitCard = ({
 					</div>
 				)}
 
-				{/* Stacks */}
 				{stacks.length > 0 && (
 					<div
 						className="stacks"
@@ -145,12 +129,20 @@ const RecruitCard = ({
 							e.stopPropagation();
 							onBookmarkClick();
 						}}
-						style={{ background: "none", border: "none", cursor: "pointer" }}
+						style={{
+							background: "none",
+							border: "none",
+							cursor: "pointer",
+							display: "flex",
+							alignItems: "center",
+						}}
 					>
+						{/* ✅ 아이콘 이름을 문자열(mdi:아이콘명)로 직접 전달합니다. */}
 						<Icon
-							icon={bookmarked ? bookmarkFilled : bookmarkOutline}
+							icon={bookmarked ? "mdi:bookmark" : "mdi:bookmark-outline"}
 							width="20"
 							height="20"
+							color={bookmarked ? "#fbbf24" : "#9ca3af"}
 						/>
 					</button>
 				</div>
