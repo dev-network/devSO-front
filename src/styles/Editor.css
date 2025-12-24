@@ -1,0 +1,332 @@
+.post-create-page .auth-box {
+  text-align: left;
+}
+
+.post-create-page .auth-logo {
+  text-align: left;
+}
+
+/* Auth.css의 `.auth-form input { font-size: 14px; }` 보다 우선되게 specificity를 높임 */
+.post-create-page .auth-form input.post-title-input {
+  font-size: 56px;
+  font-weight: 800;
+  padding: 16px 18px;
+  height: 86px;
+  line-height: 1.1;
+}
+
+/* 작성화면: 에디터 박스(왼쪽) + Markdown 패널(오른쪽)을 "박스 밖" 2컬럼으로 배치 */
+.post-create-shell {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: stretch; /* 좌/우 패널 상단/하단 기준선 맞추기 */
+  gap: 14px;
+}
+
+.post-create-left {
+  width: 100%;
+}
+
+.post-create-right {
+  width: 420px;
+  flex: 0 0 420px;
+  margin-top: 0;
+  /* 왼쪽 auth-box와 같은 높이로 늘어나도록 */
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.post-create-right textarea {
+  /* 패널 내부에서 남는 공간을 꽉 채우고, 내용은 textarea가 스크롤 */
+  flex: 1 1 auto;
+  min-height: 0;
+  height: auto;
+}
+
+/* 화면이 좁으면 오른쪽 패널이 아래로 내려가게 */
+@media (max-width: 1320px) {
+  .post-create-shell {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .post-create-right {
+    width: 100%;
+    flex: 1 1 auto;
+    position: static;
+    max-height: none;
+  }
+
+  .post-create-right textarea {
+    min-height: 200px;
+  }
+}
+
+.editor-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+  margin-bottom: 12px;
+}
+
+.editor-toolbar button {
+  border: 1px solid #ddd;
+  background: #fff;
+  color: #111; /* Auth.css의 button color(#fff) 오버라이드: 빈 박스처럼 보이던 문제 해결 */
+  padding: 8px 10px;
+  margin-top: 0; /* Auth.css의 margin-top 오버라이드 */
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.editor-toolbar button.active {
+  border-color: #007bff;
+  background: #007bff;
+  color: #fff;
+  box-shadow: 0 2px 10px rgba(0, 123, 255, 0.25);
+}
+
+.editor-toolbar button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.editor-toolbar .editor-divider {
+  width: 1px;
+  background: #e6e6e6;
+  margin: 0 4px;
+}
+
+.editor-surface {
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  padding: 14px;
+  min-height: 360px;
+  background: #fff;
+  cursor: text;
+}
+
+/* Tiptap 기본 편집 영역 */
+.editor-surface .ProseMirror {
+  outline: none;
+  font-size: 16px;
+  line-height: 1.7;
+  min-height: 360px; /* 빈 영역도 클릭/커서 이동 가능하게 */
+}
+
+/* 본문 placeholder (Tiptap Placeholder extension용) */
+.editor-surface .ProseMirror p.is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  float: left;
+  color: rgba(0, 0, 0, 0.35);
+  pointer-events: none;
+  height: 0;
+}
+
+.editor-surface .ProseMirror p {
+  margin: 0.6em 0;
+}
+
+.editor-surface .ProseMirror h1 {
+  font-size: 28px;
+  margin: 0.9em 0 0.4em;
+}
+
+.editor-surface .ProseMirror h2 {
+  font-size: 22px;
+  margin: 0.9em 0 0.4em;
+}
+
+.editor-surface .ProseMirror blockquote {
+  border-left: 4px solid #ddd;
+  padding-left: 12px;
+  color: #555;
+  margin: 0.8em 0;
+}
+
+.editor-surface .ProseMirror ul,
+.editor-surface .ProseMirror ol {
+  /* Tailwind preflight에서 list-style이 none으로 리셋되므로 다시 켜준다 */
+  padding-left: 1.3em;
+  margin: 0.6em 0;
+}
+
+.editor-surface .ProseMirror ul {
+  list-style: disc;
+}
+
+.editor-surface .ProseMirror ol {
+  list-style: decimal;
+}
+
+.editor-surface .ProseMirror img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 10px;
+  display: block;
+  margin: 12px 0;
+}
+
+/* 코드블록( ``` ) 스타일 */
+.editor-surface .ProseMirror pre,
+.codeblock-pre {
+  background: #0b1020;
+  color: #e7eaf0;
+  padding: 12px 14px;
+  border-radius: 10px;
+  overflow-x: auto;
+  margin: 12px 0;
+}
+
+.editor-surface .ProseMirror pre code,
+.codeblock-pre code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
+    "Courier New", monospace;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+/* 노션처럼 언어 배지 */
+.codeblock-wrapper {
+  position: relative;
+}
+
+.codeblock-lang {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  font-size: 12px;
+  color: rgba(231, 234, 240, 0.85);
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  padding: 3px 8px;
+  border-radius: 999px;
+  user-select: none;
+}
+
+/* highlight.js(lowlight) 토큰 컬러(간단 테마) */
+.editor-surface .ProseMirror pre .hljs-keyword,
+.codeblock-pre .hljs-keyword {
+  color: #ff7b72;
+}
+
+.editor-surface .ProseMirror pre .hljs-title,
+.editor-surface .ProseMirror pre .hljs-function,
+.codeblock-pre .hljs-title,
+.codeblock-pre .hljs-function {
+  color: #d2a8ff;
+}
+
+.editor-surface .ProseMirror pre .hljs-string,
+.codeblock-pre .hljs-string {
+  color: #a5d6ff;
+}
+
+.editor-surface .ProseMirror pre .hljs-number,
+.codeblock-pre .hljs-number {
+  color: #ffa657;
+}
+
+.editor-surface .ProseMirror pre .hljs-comment,
+.codeblock-pre .hljs-comment {
+  color: #8b949e;
+}
+
+.editor-surface .ProseMirror pre .hljs-built_in,
+.editor-surface .ProseMirror pre .hljs-type,
+.codeblock-pre .hljs-built_in,
+.codeblock-pre .hljs-type {
+  color: #7ee787;
+}
+
+.editor-surface .ProseMirror pre .hljs-attr,
+.editor-surface .ProseMirror pre .hljs-attribute,
+.codeblock-pre .hljs-attr,
+.codeblock-pre .hljs-attribute {
+  color: #79c0ff;
+}
+
+.editor-hint {
+  margin-top: 10px;
+  font-size: 13px;
+  color: #666;
+}
+
+.markdown-preview {
+  margin-top: 14px;
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  padding: 12px;
+  background: #fff;
+}
+
+/* 작성 화면 오른쪽 패널은 에디터 박스와 상단 기준선을 맞추기 위해 margin-top 제거 */
+.markdown-preview.post-create-right {
+  margin-top: 0;
+}
+
+.markdown-preview-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.markdown-preview-header button {
+  border: 1px solid #ddd;
+  background: #fff;
+  color: #111;
+  padding: 6px 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.markdown-preview-header button:hover {
+  background: #f6f6f6;
+}
+
+.markdown-preview-header button:active {
+  transform: translateY(1px);
+}
+
+.markdown-preview-header button:focus-visible {
+  outline: 2px solid rgba(0, 123, 255, 0.35);
+  outline-offset: 2px;
+}
+
+.markdown-preview-title {
+  font-weight: 700;
+}
+
+.markdown-preview textarea {
+  width: 100%;
+  min-height: 160px;
+  resize: vertical;
+  border: 1px solid #e6e6e6;
+  border-radius: 8px;
+  padding: 10px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
+    "Courier New", monospace;
+  font-size: 13px;
+  background: #fafafa;
+}
+
+.markdown-preview-hint {
+  margin-top: 8px;
+  font-size: 12px;
+  color: #666;
+}
+
+.markdown-preview-hint code {
+  background: #f1f1f1;
+  padding: 1px 6px;
+  border-radius: 6px;
+}
+
+
