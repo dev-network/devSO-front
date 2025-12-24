@@ -3,14 +3,15 @@ import { Icon } from "@iconify/react";
 
 const RecruitCard = ({
 	recruit = {},
+	options = {}, // 🌟 부모로부터 전달받은 공통 Enum 옵션 객체
 	onClick = () => {},
 	onBookmarkClick = () => {},
 }) => {
 	const {
-		type,
-		positions = [],
+		type, // 이제 숫자로 들어옴 (예: 1)
+		positions = [], // 이제 숫자 배열로 들어옴 (예: [1, 2])
 		title = "",
-		stacks = [],
+		stacks = [], // 이제 숫자 배열로 들어옴 (예: [10, 11])
 		username = "익명",
 		viewCount = 0,
 		status,
@@ -18,41 +19,23 @@ const RecruitCard = ({
 		bookmarked = false,
 	} = recruit;
 
-	// ---------------------------
-	// 데이터 변환 로직 (기존과 동일)
-	// ---------------------------
-	const typeKey =
-		type?.label !== undefined ? String(type.label) : String(type ?? "");
-
-	const positionKey = Array.isArray(positions)
-		? positions.map((p) =>
-				p?.label !== undefined ? String(p.label) : String(p ?? "")
-		  )
-		: [];
-
-	const typeLabel = {
-		1: "📚 스터디",
-		2: "📁 프로젝트",
-		STUDY: "📚 스터디",
-		PROJECT: "📁 프로젝트",
-	};
-	const positionLabel = {
-		0: "전체",
-		1: "프론트엔드",
-		2: "백엔드",
-		3: "디자이너",
-		4: "iOS",
-		5: "안드로이드",
-		6: "데브옵스",
-		7: "PM",
-		8: "기획자",
-		9: "마케터",
+	/**
+	 * 헬퍼 함수: Enum 리스트에서 value와 일치하는 label을 찾아 반환
+	 */
+	const getLabel = (optionList, value) => {
+		if (!optionList || optionList.length === 0) return value;
+		// 서버 숫자가 문자열로 올 수도 있으므로 유연하게 비교
+		const found = optionList.find((o) => String(o.value) === String(value));
+		return found ? found.label : value;
 	};
 
+	// 날짜 포맷팅
 	const formattedDeadline = deadLine
 		? new Date(deadLine).toLocaleDateString("ko-KR")
 		: "미정";
-	const typeClass = String(typeKey).toLowerCase();
+
+	// CSS 클래스용 (1: 스터디, 2: 프로젝트 가정)
+	const typeClass = String(type) === "1" ? "study" : "project";
 
 	return (
 		<div
@@ -61,12 +44,14 @@ const RecruitCard = ({
 			style={{ cursor: "pointer" }}
 		>
 			<div className="card-top-tags">
-				{typeKey && (
+				{type !== undefined && (
 					<span className={`category-tag category-${typeClass}`}>
-						{typeLabel[typeKey] || typeKey}
+						{/* 🌟 서버 API 기반 라벨 매핑 */}
+						{getLabel(options.types, type)}
 					</span>
 				)}
-				{status && String(status).toUpperCase() === "OPEN" && (
+				{/* 모집 상태가 OPEN(1)인 경우 */}
+				{(status === "OPEN" || status === 1) && (
 					<span className="category-tag category-new">🔥 모집 중</span>
 				)}
 			</div>
@@ -75,19 +60,21 @@ const RecruitCard = ({
 			<h3 className="card-title">{title}</h3>
 
 			<div className="tags">
-				{positionKey.length > 0 && (
+				{/* 🌟 포지션 매핑: 숫자 배열 -> 라벨들 */}
+				{positions.length > 0 && (
 					<div
 						className="positions"
 						style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem" }}
 					>
-						{positionKey.map((pos, idx) => (
+						{positions.map((pos, idx) => (
 							<span key={`pos-${idx}`} className="tag position-tag">
-								{positionLabel[pos] || pos}
+								{getLabel(options.positions, pos)}
 							</span>
 						))}
 					</div>
 				)}
 
+				{/* 🌟 기술 스택 매핑: 숫자 배열 -> 라벨들 */}
 				{stacks.length > 0 && (
 					<div
 						className="stacks"
@@ -100,7 +87,7 @@ const RecruitCard = ({
 					>
 						{stacks.map((stack, idx) => (
 							<span key={`stack-${idx}`} className="tag">
-								{typeof stack === "string" ? stack : stack?.label || stack}
+								{getLabel(options.stacks, stack)}
 							</span>
 						))}
 					</div>
@@ -137,7 +124,6 @@ const RecruitCard = ({
 							alignItems: "center",
 						}}
 					>
-						{/* ✅ 아이콘 이름을 문자열(mdi:아이콘명)로 직접 전달합니다. */}
 						<Icon
 							icon={bookmarked ? "mdi:bookmark" : "mdi:bookmark-outline"}
 							width="20"

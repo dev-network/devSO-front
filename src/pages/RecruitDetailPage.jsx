@@ -5,87 +5,96 @@ import {
 	deleteRecruit,
 	toggleStatus,
 	toggleBookmark,
+	getTypes,
+	getPositions,
+	getTechStacks,
+	getProgress,
+	getContactTypes,
+	getDurationTypes,
+	getMemberCount,
 } from "../api";
 import { useAuth } from "../contexts/AuthContext";
-import { Icon } from "@iconify/react"; // ✅ Iconify 추가
+import { Icon } from "@iconify/react";
 
 import "react-quill-new/dist/quill.snow.css";
-
-const LABEL_MAP = {
-	// DB: STUDY, PROJECT
-	type: {
-		1: "스터디",
-		2: "프로젝트",
-	},
-	// DB: ONLINE, OFFLINE, HYBRID (데이터에 HYBRID가 있음)
-	progressType: {
-		ONLINE: "온라인",
-		OFFLINE: "오프라인",
-		HYBRID: "온/오프라인",
-	},
-	// DB: OPEN_TALK, EMAIL, GOOGLE_FORM, OTHER
-	contactMethod: {
-		OPEN_TALK: "오픈 톡",
-		EMAIL: "이메일",
-		GOOGLE_FORM: "구글 폼",
-		OTHER: "기타",
-	},
-	// 모집 인원 (데이터상 숫자로 보임: 4, 2, 3 등)
-	totalCount: {
-		1: "1명",
-		2: "2명",
-		3: "3명",
-		4: "4명",
-		5: "5명",
-		6: "6명",
-		7: "7명",
-		8: "8명",
-		9: "9명",
-		10: "10명 이상",
-	},
-	// DB: ONE_MONTH ~ SIX_MONTHS, LONG_TERM
-	duration: {
-		ONE_MONTH: "1개월",
-		TWO_MONTHS: "2개월",
-		THREE_MONTHS: "3개월",
-		FOUR_MONTHS: "4개월",
-		FIVE_MONTHS: "5개월",
-		SIX_MONTHS: "6개월",
-		LONG_TERM: "장기",
-	},
-	// 모집 분야 (이전과 동일하게 유지하거나, DB에 영문으로 들어온다면 수정 필요)
-	positions: {
-		0: "전체",
-		1: "백엔드",
-		2: "프론트엔드",
-		3: "디자이너",
-		4: "iOS",
-		5: "안드로이드",
-		6: "데브옵스",
-		7: "PM",
-		8: "기획자",
-		9: "마케터",
-	},
-};
 
 export default function RecruitDetailPage() {
 	const { id } = useParams();
 	const navigate = useNavigate();
 	const { user } = useAuth();
-	const [recruit, setRecruit] = useState(null);
 
-	const fetchRecruit = async () => {
+	const [recruit, setRecruit] = useState(null);
+	const [options, setOptions] = useState({
+		types: [],
+		positions: [],
+		stacks: [],
+		progress: [],
+		contacts: [],
+		durations: [],
+		members: [],
+	});
+
+	const fetchData = async () => {
 		try {
-			const res = await getRecruitDetail(id);
-			setRecruit(res.data.data);
+			// 모든 Enum 데이터를 병렬로 로드
+			const [detailRes, t, p, s, pr, c, d, m] = await Promise.all([
+				getRecruitDetail(id),
+				getTypes(),
+				getPositions(),
+				getTechStacks(),
+				getProgress(),
+				getContactTypes(),
+				getDurationTypes(),
+				getMemberCount(),
+			]);
+
+			setRecruit(detailRes.data.data);
+			setOptions({
+				types: t.data, // [{value: 1, label: "스터디", key: "STUDY"}, ...]
+				positions: p.data,
+				stacks: s.data,
+				progress: pr.data,
+				contacts: c.data,
+				durations: d.data,
+				members: m.data,
+			});
 		} catch (err) {
 			console.error("데이터 로딩 실패", err);
 		}
 	};
 
 	useEffect(() => {
-		if (id) fetchRecruit();
+		if (id) fetchData();
 	}, [id]);
+
+	/**
+	 * 🌟 핵심 로직: getLabel
+	 * 서버에서 온 값(serverValue)이 숫자(1)이든 영문(HYBRID)이든
+	 * 백엔드에서 새로 추가한 key 필드와 비교하여 적절한 한글 라벨을 찾습니다.
+	 */
+	const getLabel = (optionList, serverValue) => {
+		if (
+			!optionList ||
+			optionList.length === 0 ||
+			serverValue === undefined ||
+			serverValue === null
+		) {
+			return serverValue;
+		}
+
+		const found = optionList.find((o) => {
+			// 1. 숫자값 비교 (value 필드)
+			const isValueMatch = String(o.value) === String(serverValue);
+			// 2. 영문 상수명 비교 (key 필드 - 백엔드에서 p.name()으로 보낸 값)
+			const isKeyMatch =
+				o.key &&
+				String(o.key).toUpperCase() === String(serverValue).toUpperCase();
+
+			return isValueMatch || isKeyMatch;
+		});
+
+		return found ? found.label : serverValue;
+	};
 
 	const handleBookmarkToggle = async () => {
 		if (!user) {
@@ -107,7 +116,7 @@ export default function RecruitDetailPage() {
 	};
 
 	const handleDelete = async () => {
-		if (window.confirm("정말 이 모집글을 삭제하시겠습니까?")) {
+		if (window.confirm("작성하신 글을 삭제 하시겠어요?")) {
 			try {
 				await deleteRecruit(id);
 				alert("삭제되었습니다.");
@@ -118,8 +127,13 @@ export default function RecruitDetailPage() {
 		}
 	};
 
+	const handleUpdate = () => {
+		navigate("/recruits/create", { state: { editData: recruit } });
+	};
+
 	const handleToggleStatus = async () => {
-		const isClosing = recruit.status === "OPEN";
+		// OPEN 상태를 1 또는 "OPEN"으로 유연하게 체크
+		const isClosing = recruit.status === "OPEN" || recruit.status === 1;
 		if (
 			window.confirm(
 				isClosing ? "모집을 마감하시겠습니까?" : "모집을 다시 시작하시겠습니까?"
@@ -128,7 +142,7 @@ export default function RecruitDetailPage() {
 			try {
 				await toggleStatus(id);
 				alert("상태가 변경되었습니다.");
-				fetchRecruit();
+				fetchData();
 			} catch (err) {
 				alert("상태 변경에 실패했습니다.");
 			}
@@ -146,7 +160,6 @@ export default function RecruitDetailPage() {
 
 	return (
 		<div className="max-w-4xl mx-auto px-6 py-10 bg-white min-h-screen">
-			{/* 목록으로 가기 버튼 */}
 			<button
 				onClick={() => navigate(-1)}
 				className="mb-8 text-gray-400 hover:text-black transition flex items-center gap-1"
@@ -156,9 +169,10 @@ export default function RecruitDetailPage() {
 			</button>
 
 			<header className="mb-12">
-				{/* 제목 섹션 */}
 				<h1 className="text-3xl font-bold tracking-tight text-gray-900 mb-8 flex items-center gap-3">
-					{recruit.status === "CLOSED" && (
+					{(recruit.status === "CLOSED" ||
+						recruit.status === 2 ||
+						recruit.status === "CLOSE") && (
 						<span className="bg-red-50 text-red-500 text-xs px-2 py-1 rounded font-bold uppercase shrink-0">
 							마감
 						</span>
@@ -166,7 +180,6 @@ export default function RecruitDetailPage() {
 					{recruit.title}
 				</h1>
 
-				{/* ✅ 프로필 영역 + 버튼 그룹 (작성자 정보 오른쪽에 배치) */}
 				<div className="flex justify-between items-center pb-8 border-b border-gray-50">
 					<div className="flex items-center gap-3">
 						<div className="w-10 h-10 bg-yellow-100 rounded-full flex items-center justify-center text-lg overflow-hidden border border-yellow-50">
@@ -190,13 +203,9 @@ export default function RecruitDetailPage() {
 						</div>
 					</div>
 
-					{/* ✅ 버튼 그룹 (프로필 오른쪽 끝) */}
 					{isOwner && (
 						<div className="flex gap-2">
-							<button
-								onClick={() => navigate(`/recruits/${id}/edit`)}
-								className="detail-action-btn"
-							>
+							<button onClick={handleUpdate} className="detail-action-btn">
 								수정
 							</button>
 							<button
@@ -209,41 +218,49 @@ export default function RecruitDetailPage() {
 								onClick={handleToggleStatus}
 								className="detail-action-btn text-blue-600 bg-blue-50 border-blue-100"
 							>
-								{recruit.status === "OPEN" ? "마감하기" : "마감취소"}
+								{recruit.status === "OPEN" || recruit.status === 1
+									? "마감하기"
+									: "마감취소"}
 							</button>
 						</div>
 					)}
 				</div>
 			</header>
 
-			{/* 2. 주요 정보 그리드 */}
+			{/* 정보 섹션: 모든 value에 getLabel을 적용하여 치환 */}
 			<section className="grid grid-cols-1 md:grid-cols-2 gap-y-6 gap-x-16 pb-12 border-b border-gray-50">
-				<InfoItem label="모집 구분" value={LABEL_MAP.type[recruit.type]} />
+				<InfoItem
+					label="모집 구분"
+					value={getLabel(options.types, recruit.type)}
+				/>
 				<InfoItem
 					label="진행 방식"
-					value={LABEL_MAP.progressType[recruit.progressType]}
+					value={getLabel(options.progress, recruit.progressType)}
 				/>
 				<InfoItem
 					label="모집 인원"
-					value={LABEL_MAP.totalCount[recruit.totalCount]}
+					value={getLabel(options.members, recruit.totalCount)}
 				/>
 				<InfoItem label="시작 예정" value={recruit.deadLine} />
 				<InfoItem
 					label="연락 방법"
-					value={LABEL_MAP.contactMethod[recruit.contactMethod]}
+					value={getLabel(options.contacts, recruit.contactMethod)}
 				/>
 				<InfoItem
 					label="예상 기간"
-					value={LABEL_MAP.duration[recruit.duration]}
+					value={getLabel(options.durations, recruit.duration)}
 				/>
 				<InfoItem
 					label="모집 분야"
-					value={recruit.positions?.map((p) => LABEL_MAP.positions[p])}
+					value={recruit.positions?.map((p) => getLabel(options.positions, p))}
 				/>
-				<InfoItem label="사용 언어" value={recruit.stacks} isBadge />
+				<InfoItem
+					label="사용 언어"
+					value={recruit.stacks?.map((s) => getLabel(options.stacks, s))}
+					isBadge
+				/>
 			</section>
 
-			{/* 3. 본문 */}
 			<section className="py-12 border-b border-gray-50">
 				<h2 className="text-xl font-bold mb-8 text-gray-900">프로젝트 소개</h2>
 				<div className="ql-container ql-snow" style={{ border: "none" }}>
@@ -254,15 +271,12 @@ export default function RecruitDetailPage() {
 				</div>
 			</section>
 
-			{/* 4. 하단 액션 (북마크/지원) */}
 			<footer className="py-8 flex justify-between items-center">
 				<div className="flex items-center gap-6">
 					<span className="text-gray-400 text-sm flex items-center gap-1">
 						<Icon icon="mdi:eye-outline" width="18" height="18" />{" "}
 						{recruit.viewCount || 0}
 					</span>
-
-					{/* ✅ 북마크 (요청하신 노란색 테마 적용) */}
 					<button
 						onClick={handleBookmarkToggle}
 						className="flex items-center gap-1.5 transition-all active:scale-95"
@@ -284,17 +298,10 @@ export default function RecruitDetailPage() {
 						</span>
 					</button>
 				</div>
-
-				{!isOwner && recruit.status === "OPEN" && (
-					<button className="bg-black text-white px-14 py-4 rounded-full font-bold hover:bg-gray-800 transition shadow-xl active:scale-95">
-						지원하기
-					</button>
-				)}
 			</footer>
 
-			{/* 5. 댓글 영역 */}
 			<section className="mt-10 pb-20">
-				<h3 className="font-bold mb-6 text-gray-900 text-lg border-t pt-10">
+				<h3 className="font-bold mb-6 text-gray-900 text-lg border-t border-gray-100 pt-10">
 					댓글{" "}
 					<span className="text-gray-400 ml-1">
 						{recruit.commentCount || 0}
@@ -345,15 +352,15 @@ export default function RecruitDetailPage() {
 function InfoItem({ label, value, isBadge }) {
 	const displayValue = Array.isArray(value)
 		? value.filter(Boolean).join(", ")
-		: value || "전체";
+		: value || "미정";
 	return (
 		<div className="flex items-start text-[15px]">
 			<span className="w-24 text-gray-400 shrink-0 font-medium">{label}</span>
 			<div className="flex flex-wrap gap-2">
 				{isBadge && Array.isArray(value) ? (
-					value.map((v) => (
+					value.map((v, idx) => (
 						<span
-							key={v}
+							key={idx}
 							className="bg-gray-100 text-gray-600 px-2.5 py-1 rounded text-xs font-bold uppercase tracking-wide"
 						>
 							{v}
