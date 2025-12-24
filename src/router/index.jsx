@@ -8,13 +8,16 @@ import RecentPostListPage from "../pages/RecentPostListPage.jsx";  // 최신 게
 import PostDetailPage from "../pages/PostDetailPage.jsx";  // 게시글 상세
 import { PublicRoute, PrivateRoutes } from "./ProtectedRoute.jsx";
 import { AuthProvider } from "../contexts/AuthContext.jsx";
+import { ChatProvider } from "../contexts/ChatContext.jsx";
 
 const router = createBrowserRouter([
   {
     path: "/",
     element: (
       <AuthProvider>
-        <RootLayout />
+        <ChatProvider>
+          <RootLayout />
+        </ChatProvider>
       </AuthProvider>
     ),
     children: [
@@ -65,6 +68,11 @@ const router = createBrowserRouter([
             <PostCreatePage />
           </PrivateRoutes>
         ),
+        path: "/",
+        element: <PrivateRoutes />,
+        children: [
+          // Empty for now, can add other private routes here
+        ],
       },
     ],
   },
