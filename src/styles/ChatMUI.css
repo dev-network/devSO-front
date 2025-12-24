@@ -1,0 +1,6 @@
+.chat-messages-list {
+  padding: 8px;
+  flex-grow: 1;
+  overflow-y: auto;
+  background-color: #f5f5f5;
+}

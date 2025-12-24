@@ -1,150 +1,185 @@
-import React, { useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import React, { useEffect, useState, useCallback, useMemo } from "react";
 import {
   getMyChatRooms,
   enterChatRoom,
   searchUsers,
   getImageUrl,
 } from "../api";
-import { useAuth } from "../contexts/AuthContext"; // Import useAuth to get current user info
-import "../styles/Chat.css";
+import { useChat } from "../contexts/ChatContext"; // Import useChat
+import ChatMobileFrame from "../components/ChatMobileFrame";
+import {
+  AppBar,
+  Toolbar,
+  Typography,
+  List,
+  ListItemAvatar,
+  Avatar,
+  ListItemText,
+  Badge,
+  TextField,
+  InputAdornment,
+  CircularProgress,
+  Box,
+  Divider,
+  ListItemButton,
+} from "@mui/material";
+import SearchIcon from "@mui/icons-material/Search";
+import "../styles/ChatMUI.css";
+import { debounce } from "../utils/debounce";
 
-const ChatListPage = () => {
+const ChatListPage = ({ onRoomSelect }) => {
   const [chatRooms, setChatRooms] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [userSearchTerm, setUserSearchTerm] = useState("");
   const [userSearchResults, setUserSearchResults] = useState([]);
-  const { user } = useAuth(); // Get the current authenticated user
-
-  const navigate = useNavigate();
+  const { setTotalUnreadCount } = useChat(); // Get setTotalUnreadCount from context
 
   useEffect(() => {
-    fetchChatRooms(); // 컴포넌트 마운트 시 fetch
-
-    const handleFocus = () => {
-      console.log("Window refocused, re-fetching chat rooms.");
-      fetchChatRooms(); // 창이 다시 포커스될 때 fetch
-    };
-
+    fetchChatRooms();
+    const handleFocus = () => fetchChatRooms();
     window.addEventListener("focus", handleFocus);
-
-    return () => {
-      window.removeEventListener("focus", handleFocus);
-    };
-  }, []); // 빈 의존성 배열은 마운트 시 한 번 실행 및 언마운트 시 클린업을 의미합니다.
+    return () => window.removeEventListener("focus", handleFocus);
+  }, []);
 
   const fetchChatRooms = async () => {
     try {
       setLoading(true);
       const response = await getMyChatRooms();
-      setChatRooms(response.data.data); // API 응답 데이터를 그대로 사용
+      setChatRooms(response.data.data);
+      // Calculate total unread count
+      const total = response.data.data.reduce((sum, room) => sum + room.unreadCount, 0);
+      setTotalUnreadCount(total);
     } catch (err) {
       setError("채팅방 목록을 불러오는데 실패했습니다.");
-      console.error(err);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleStartNewChat = async opponentId => {
+  const handleStartNewChat = async (opponentId) => {
     try {
       const response = await enterChatRoom(opponentId);
-      const { roomId } = response.data;
-      navigate(`/chat/${roomId}`);
+      onRoomSelect(response.data.roomId);
     } catch (err) {
       setError("채팅방 생성/입장에 실패했습니다.");
-      console.error(err);
     }
   };
 
-  const handleUserSearch = async () => {
-    if (userSearchTerm.trim()) {
-      try {
-        const response = await searchUsers(userSearchTerm.trim());
-        setUserSearchResults(response.data.data);
-      } catch (error) {
-        console.error("사용자 검색에 실패했습니다.", error);
-        setUserSearchResults([]);
-      }
-    } else {
+  const performSearch = async (term) => {
+    if (!term.trim()) {
+      setUserSearchResults([]);
+      return;
+    }
+    try {
+      const response = await searchUsers(term.trim());
+      setUserSearchResults(response.data.data);
+    } catch (error) {
+      console.error("사용자 검색에 실패했습니다.", error);
       setUserSearchResults([]);
     }
   };
 
-  if (loading) {
-    return <div>채팅방 목록 로딩 중...</div>;
-  }
+  const debouncedSearch = useMemo(
+    () => debounce(performSearch, 300),
+    []
+  );
 
-  if (error) {
-    return <div className="error-message">{error}</div>;
-  }
+  useEffect(() => {
+    debouncedSearch(userSearchTerm);
+  }, [userSearchTerm, debouncedSearch]);
+
+  const header = (
+    <AppBar position="static" color="default" elevation={0} sx={{ borderBottom: '1px solid #ddd' }}>
+      <Toolbar>
+        <Typography variant="h6" component="div" sx={{ flexGrow: 1, textAlign: 'center' }}>
+          채팅
+        </Typography>
+      </Toolbar>
+    </AppBar>
+  );
 
   return (
-    <div className="chat-list-container">
-      <h1>내 채팅방</h1>
-
-      {/* 새로운 채팅 시작 섹션 */}
-      <div className="new-chat-section">
-        <input
-          type="text"
-          placeholder="새로운 채팅 상대방 검색 (username)"
+    <ChatMobileFrame header={header}>
+      <Box sx={{ p: 2, flexShrink: 0, borderBottom: '1px solid #eee' }}>
+        <TextField
+          fullWidth
+          variant="standard"
+          placeholder="사용자 검색"
           value={userSearchTerm}
-          onChange={e => setUserSearchTerm(e.target.value)}
+          onChange={(e) => setUserSearchTerm(e.target.value)}
+          InputProps={{
+            startAdornment: (
+              <InputAdornment position="start">
+                <SearchIcon />
+              </InputAdornment>
+            ),
+            disableUnderline: true,
+          }}
         />
-        <button onClick={handleUserSearch}>검색</button>
-        {userSearchResults.length > 0 && (
-          <div className="user-search-results">
-            <h3>검색 결과:</h3>
-            <ul>
-              {userSearchResults.map(foundUser => (
-                <li key={foundUser.id}>
-                  {foundUser.name} ({foundUser.username})
-                  <button onClick={() => handleStartNewChat(foundUser.id)}>
-                    채팅 시작
-                  </button>
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
-      </div>
+      </Box>
 
-      {chatRooms.length === 0 ? (
-        <p>아직 참여 중인 채팅방이 없습니다.</p>
-      ) : (
-        <ul className="chat-rooms-list">
-          {chatRooms.map(room => (
-            <li key={room.roomId} className="chat-room-item">
-              <Link to={`/chat/${room.roomId}`}>
-                <div className="opponent-info">
-                  <img
-                    src={
-                      getImageUrl(room.opponentProfileImageUrl) ||
-                      "/default-profile.png"
-                    }
-                    alt={room.opponentName}
-                    className="profile-thumbnail"
-                  />
-                  <span>{room.opponentName}</span>
-                </div>
-                <div className="last-message">
-                  <p>{room.lastMessage || "새로운 대화를 시작해보세요."}</p>
-                  {room.lastMessageTime && (
-                    <span className="message-time">
-                      {new Date(room.lastMessageTime).toLocaleTimeString()}
-                    </span>
-                  )}
-                </div>
-                {room.unreadCount > 0 && (
-                  <span className="unread-count">{room.unreadCount}</span>
-                )}
-              </Link>
-            </li>
-          ))}
-        </ul>
+      {loading && (
+        <Box sx={{ display: "flex", justifyContent: "center", my: 2 }}>
+          <CircularProgress />
+        </Box>
       )}
-    </div>
+      {error && <Typography color="error" sx={{p: 2}}>{error}</Typography>}
+
+      <List sx={{ flexGrow: 1, overflowY: "auto", p: 0 }}>
+        {userSearchResults.length > 0 && (
+          <>
+            <Typography variant="subtitle2" sx={{p: '16px 16px 8px'}}>검색 결과</Typography>
+            {userSearchResults.map((foundUser) => (
+              <ListItemButton
+                key={foundUser.id}
+                onClick={() => handleStartNewChat(foundUser.id)}
+              >
+                <ListItemAvatar>
+                  <Avatar src={getImageUrl(foundUser.profileImageUrl)} />
+                </ListItemAvatar>
+                <ListItemText
+                  primary={foundUser.name}
+                  secondary={`@${foundUser.username}`}
+                />
+              </ListItemButton>
+            ))}
+            <Divider sx={{my: 1}}/>
+          </>
+        )}
+
+        {chatRooms.map((room) => (
+          <ListItemButton
+            key={room.roomId}
+            onClick={() => onRoomSelect(room.roomId)}
+          >
+            <ListItemAvatar>
+              <Badge
+                overlap="circular"
+                anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+                variant="dot"
+                color="success" // This could be dynamic based on user status
+              >
+                <Avatar
+                  src={
+                    getImageUrl(room.opponentProfileImageUrl) ||
+                    "/default-profile.png"
+                  }
+                />
+              </Badge>
+            </ListItemAvatar>
+            <ListItemText
+              primary={room.opponentName}
+              secondary={room.lastMessage || "새로운 대화를 시작해보세요."}
+              secondaryTypographyProps={{ noWrap: true, textOverflow: 'ellipsis' }}
+            />
+            {room.unreadCount > 0 && (
+              <Badge badgeContent={room.unreadCount} color="error" />
+            )}
+          </ListItemButton>
+        ))}
+      </List>
+    </ChatMobileFrame>
   );
 };
 
