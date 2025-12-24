@@ -30,8 +30,12 @@ const router = createBrowserRouter([
         element: <RecentPostListPage />,  // "/posts"도 게시글 목록
       },
       {
-        path: "posts/:id",
-        element: <PostDetailPage />,  // 게시글 상세
+        path: "posts/new",
+        element: (
+          <PrivateRoutes>
+            <PostCreatePage />
+          </PrivateRoutes>
+        ),
       },
       {
         path: "posts/:id/edit",
@@ -40,6 +44,10 @@ const router = createBrowserRouter([
             <PostCreatePage />
           </PrivateRoutes>
         ),
+      },
+      {
+        path: "posts/:id",
+        element: <PostDetailPage />,  // 게시글 상세
       },
       {
         path: "login",
@@ -60,19 +68,6 @@ const router = createBrowserRouter([
       {
         path: "oauth/kakao/callback",
         element: <KakaoCallback />,
-      },
-      {
-        path: "posts/new",
-        element: (
-          <PrivateRoutes>
-            <PostCreatePage />
-          </PrivateRoutes>
-        ),
-        path: "/",
-        element: <PrivateRoutes />,
-        children: [
-          // Empty for now, can add other private routes here
-        ],
       },
     ],
   },
