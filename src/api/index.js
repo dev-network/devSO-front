@@ -53,7 +53,7 @@ export const logout = (data) => api.post('/api/auth/logout', data);
 export const kakaoLogin = (code) => api.post('/api/auth/kakao', { code });
 
 // 게시물 API
-export const getPosts = () => api.get('/api/posts');
+export const getPosts = (page = 0, size = 10) => api.get(`/api/posts?page=${page}&size=${size}`);
 export const getPost = (id) => api.get(`/api/posts/${id}`);
 export const createPost = (data) => api.post('/api/posts', data);
 export const updatePost = (id, data) => api.put(`/api/posts/${id}`, data);

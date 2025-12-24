@@ -31,11 +31,17 @@ export default function RootLayout() {
         <NavLink to="/" style={navLinkStyle}>
           SNS
         </NavLink>
+        <NavLink to="/posts" style={navLinkStyle}>
+          최신
+        </NavLink>
 
         {isAuthenticated ? (
           <>
             <NavLink to="/profile" style={navLinkStyle}>
               프로필
+            </NavLink>
+            <NavLink to="/posts/new" style={navLinkStyle}>
+              새 글 작성
             </NavLink>
             <button onClick={logout} style={logoutButtonStyle}>
               로그아웃
