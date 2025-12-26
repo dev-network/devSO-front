@@ -439,7 +439,7 @@ export default function RecruitDetailPage() {
 										<textarea
 											value={editInput}
 											onChange={(e) => setEditInput(e.target.value)}
-											className="w-full bg-transparent p-2 text-[15px] focus:outline-none min-h-[80px] resize-none"
+											className="w-full bg-transparent p-2 text-[15px] focus:outline-none min-h-20 resize-none"
 											placeholder="내용을 입력하세요..."
 										/>
 										<div className="flex justify-end gap-2 mt-2 pt-2 border-t border-gray-50">
