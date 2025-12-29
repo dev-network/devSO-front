@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import {
 	getRecruits,
@@ -9,60 +9,105 @@ import {
 } from "../api/index.js";
 import "../styles/Recruit.css";
 import RecruitCard from "../components/RecruitCard.jsx";
+import RecruitFilterBar from "../components/RecruitFilterBar.jsx";
 
 const RecruitMainPage = () => {
 	const navigate = useNavigate();
-	const [recruits, setRecruits] = useState([]);
-	const [loading, setLoading] = useState(true);
+	const [recruits, setRecruits] = useState([]); // 게시글 목록
+	const [loading, setLoading] = useState(true); // 로딩 상태
 
-	// 🌟 Enum 옵션들을 저장할 상태
+	// 🌟 1. 필터 상태 관리
+	const [filter, setFilter] = useState({
+		type: null,
+		position: null,
+		stacks: [],
+		search: "",
+		onlyOpen: true,
+		onlyBookmarked: false,
+	});
+
+	// 🌟 2. Enum 옵션 데이터 상태
 	const [options, setOptions] = useState({
 		types: [],
 		positions: [],
 		stacks: [],
 	});
 
-	useEffect(() => {
-		// 페이지 로드 시 게시글과 Enum 정보를 동시에 가져옴
-		loadInitialData();
+	/**
+	 * 🌟 3. 필터링된 게시글 데이터를 가져오는 함수
+	 * getRecruits가 api.get()의 Promise를 리턴하므로 response.data를 확인합니다.
+	 */
+	const fetchRecruitsData = useCallback(async (currentFilter) => {
+		try {
+			const response = await getRecruits(currentFilter);
+			const data = response.data.data || response.data;
+
+			setRecruits(Array.isArray(data) ? data : []);
+		} catch (error) {
+			console.error("모집글 로드 실패:", error);
+			setRecruits([]);
+		}
 	}, []);
 
-	const loadInitialData = async () => {
-		setLoading(true);
-		try {
-			// 🌟 게시글 리스트와 필터/라벨링에 필요한 Enum들을 병렬로 호출
-			const [recruitRes, typeRes, posRes, stackRes] = await Promise.all([
-				getRecruits(),
-				getTypes(),
-				getPositions(),
-				getTechStacks(),
-			]);
+	/**
+	 * 🌟 4. 페이지 초기 진입 시 로직
+	 */
+	useEffect(() => {
+		const loadInitialData = async () => {
+			setLoading(true);
+			try {
+				// 병렬 호출로 로딩 속도 향상
+				const [typeRes, posRes, stackRes] = await Promise.all([
+					getTypes(),
+					getPositions(),
+					getTechStacks(),
+				]);
 
-			setRecruits(recruitRes.data.data);
+				setOptions({
+					types: typeRes.data || [],
+					positions: posRes.data || [],
+					stacks: stackRes.data || [],
+				});
 
-			// 🌟 서버에서 받아온 Enum 데이터를 options 상태에 저장
-			setOptions({
-				types: typeRes.data, // 예: [{value: 1, label: "스터디"}, ...]
-				positions: posRes.data,
-				stacks: stackRes.data,
-			});
-		} catch (error) {
-			console.error("데이터 로드 실패:", error);
-		} finally {
-			setLoading(false);
+				// 첫 게시글 리스트 조회
+				await fetchRecruitsData(filter);
+			} catch (error) {
+				console.error("초기 데이터 로드 실패:", error);
+			} finally {
+				setLoading(false);
+			}
+		};
+
+		loadInitialData();
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, []);
+
+	/**
+	 * 🌟 5. 필터 변경 감지 로직
+	 */
+	useEffect(() => {
+		if (!loading) {
+			fetchRecruitsData(filter);
 		}
-	};
+	}, [filter, fetchRecruitsData, loading]);
 
+	/**
+	 * 🌟 6. 북마크 클릭 핸들러
+	 */
 	const handleBookmarkClick = async (recruitId) => {
 		try {
-			await toggleBookmark(recruitId);
+			const response = await toggleBookmark(recruitId);
+			// 서버 응답 구조가 response.data.data에 boolean이 들어있다고 가정
+			const isBookmarked = response.data.data;
+
 			setRecruits((prev) =>
 				prev.map((r) =>
-					r.id === recruitId ? { ...r, bookmarked: !r.bookmarked } : r
+					r.id === recruitId ? { ...r, bookmarked: isBookmarked } : r
 				)
 			);
 		} catch (error) {
 			console.error("북마크 토글 실패:", error);
+			alert("로그인이 필요한 서비스이거나 서버 오류가 발생했습니다.");
 		}
 	};
 
@@ -79,22 +124,37 @@ const RecruitMainPage = () => {
 				</button>
 			</section>
 
+			<RecruitFilterBar
+				options={options}
+				filter={filter}
+				setFilter={setFilter}
+			/>
+
 			{loading ? (
-				<div className="loading">로딩 중...</div>
-			) : recruits.length === 0 ? (
-				<div className="no-posts">등록된 게시물이 없습니다.</div>
+				<div className="loading">모집글을 불러오는 중입니다...</div>
 			) : (
-				<div className="recruit-posts">
-					{recruits.map((recruit) => (
-						<RecruitCard
-							key={recruit.id}
-							recruit={recruit}
-							// 🌟 수정된 RecruitCard에 options를 전달합니다.
-							options={options}
-							onClick={() => navigate(`/recruits/${recruit.id}`)}
-							onBookmarkClick={() => handleBookmarkClick(recruit.id)}
-						/>
-					))}
+				<div className="recruit-content">
+					<div className="recruit-count">
+						총 <span>{recruits.length}</span>개의 모집글이 있습니다.
+					</div>
+
+					{recruits.length === 0 ? (
+						<div className="no-posts">
+							검색 조건에 맞는 게시물이 없습니다. 필터를 변경해보세요!
+						</div>
+					) : (
+						<div className="recruit-posts">
+							{recruits.map((recruit) => (
+								<RecruitCard
+									key={recruit.id}
+									recruit={recruit}
+									options={options}
+									onClick={() => navigate(`/recruits/${recruit.id}`)}
+									onBookmarkClick={() => handleBookmarkClick(recruit.id)}
+								/>
+							))}
+						</div>
+					)}
 				</div>
 			)}
 		</div>

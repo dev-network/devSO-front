@@ -121,7 +121,9 @@ export const markChatAsRead = (roomId) =>
 	api.post(`/api/chat/rooms/${roomId}/read`);
 
 // 팀 모집 API
-export const getRecruits = () => api.get("/api/recruits");
+// export const getRecruits = () => api.get("/api/recruits");
+export const getRecruits = (filter) =>
+	api.get("/api/recruits", { params: filter });
 export const getRecruitDetail = (id) => api.get(`/api/recruits/${id}`);
 export const createRecruit = (data) => api.post("/api/recruits", data);
 export const updateRecruit = (id, data) => api.put(`/api/recruits/${id}`, data);

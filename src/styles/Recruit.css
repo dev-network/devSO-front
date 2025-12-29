@@ -1,167 +1,235 @@
-/* ===== Container ===== */
+/* ===== 1. 기본 레이아웃 및 폰트 ===== */
 .recruit-container {
 	max-width: 1200px;
 	margin: 0 auto;
 	padding: 2rem;
 	font-family: "Noto Sans KR", sans-serif;
+	color: #333;
 }
 
-/* ===== Hero Section ===== */
+/* ===== 2. 히어로 섹션 (상단 배너) ===== */
 .hero-section {
 	background: linear-gradient(90deg, #6c5ce7 0%, #a29bfe 100%);
 	color: white;
-	padding: 3rem 2rem;
-	border-radius: 16px;
+	padding: 4rem 2rem;
+	border-radius: 20px;
 	text-align: center;
-	margin-bottom: 2rem;
+	margin-bottom: 2.5rem;
+	box-shadow: 0 10px 30px rgba(108, 92, 231, 0.2);
 }
 
 .hero-title {
-	font-size: 2.5rem;
+	font-size: 2.8rem;
 	font-weight: 800;
-	margin-bottom: 0.5rem;
+	margin-bottom: 0.8rem;
+	letter-spacing: -1px;
 }
 
 .hero-subtitle {
-	font-size: 1.2rem;
-	margin-bottom: 1.5rem;
+	font-size: 1.25rem;
+	margin-bottom: 2rem;
+	opacity: 0.9;
 }
 
 .hero-btn {
 	background-color: white;
 	color: #6c5ce7;
 	font-weight: bold;
-	padding: 0.7rem 1.4rem;
-	border-radius: 8px;
+	padding: 0.8rem 1.8rem;
+	border-radius: 10px;
 	border: none;
 	cursor: pointer;
-	margin-bottom: 1rem;
-	transition: 0.3s ease;
+	transition: all 0.3s ease;
+	font-size: 1.1rem;
 }
 
 .hero-btn:hover {
 	background-color: #f0f0f0;
+	transform: translateY(-2px);
+}
+
+/* ===== 3. 필터 영역 (레이아웃 핵심 수정) ===== */
+.filter-area {
+	background-color: #ffffff;
+	padding: 1.5rem;
+	border-radius: 16px;
+	border: 1px solid #f1f2f6;
+	margin-bottom: 2.5rem;
+	display: flex;
+	flex-direction: column;
+	gap: 1.5rem;
+}
+
+/* 상단 검색 및 드롭다운 정렬 */
+.filter-bar {
+	display: flex;
+	gap: 1rem;
+	align-items: center;
+	flex-wrap: wrap; /* 모바일 대응 */
 }
 
 .search-input {
-	width: 100%;
-	max-width: 400px;
-	padding: 0.7rem;
-	border-radius: 8px;
-	border: none;
+	flex: 2; /* 검색창을 더 넓게 */
+	min-width: 250px;
+	padding: 0.8rem 1.2rem;
+	border-radius: 10px;
+	border: 1px solid #e1e2e6;
 	font-size: 1rem;
+	background-color: #f9f9fb;
+	transition: border-color 0.2s;
 }
 
-/* ===== Filter Bar ===== */
-.filter-bar {
-	display: flex;
-	gap: 0.75rem;
-	justify-content: center;
-	margin-bottom: 1.5rem;
-	flex-wrap: wrap;
+.search-input:focus {
+	outline: none;
+	border-color: #6c5ce7;
+	background-color: #fff;
 }
 
+/* 공통 필터 버튼 & 셀렉트 박스 */
 .filter-btn {
-	padding: 0.5rem 1rem;
-	border-radius: 20px;
+	flex: 1;
+	min-width: 140px;
+	padding: 0.8rem 1rem;
+	border-radius: 10px;
 	background: #f1f2f6;
-	border: none;
+	border: 1px solid transparent;
 	cursor: pointer;
 	font-size: 0.95rem;
-	transition: 0.3s;
+	transition: all 0.3s;
+	color: #444;
 }
 
-.filter-btn:hover,
+.filter-btn:hover {
+	background: #e1e2e6;
+}
+
 .filter-btn.active {
 	background: #6c5ce7;
 	color: white;
 }
 
-/* ===== Posts Grid ===== */
-.recruit-posts {
-	display: grid;
-	gap: 1.6rem;
-	grid-template-columns: repeat(4, 1fr); /* 한 줄에 4개 */
-}
-
-.loading,
-.no-posts {
-	text-align: center;
-	font-size: 1.2rem;
-	color: #666;
-	padding: 2rem;
-}
-
-/* ===== Card ===== */
-.recruit-card {
-	background: white;
-	padding: 1.5rem;
-	border-radius: 12px;
-	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-	transition: transform 0.2s, box-shadow 0.2s;
-	cursor: pointer;
+/* 기술 스택 필터 섹션 */
+.stack-filter-section {
 	display: flex;
 	flex-direction: column;
+	gap: 1rem;
 }
 
-.recruit-card:hover {
-	transform: translateY(-5px);
-	box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
-}
-
-.recruit-card h3 {
-	font-size: 1.3rem;
+.filter-label {
 	font-weight: 700;
+	font-size: 1rem;
+	color: #2d3436;
+}
+
+/* 🌟 이미지에서 뭉쳤던 기술 스택 칩 해결 */
+.stack-chips {
+	display: flex;
+	flex-wrap: wrap; /* 줄바꿈 허용 */
+	gap: 0.6rem; /* 칩 사이 간격 */
+}
+
+.stack-chip {
+	padding: 0.5rem 1rem;
+	border-radius: 25px;
+	background: #fff;
+	border: 1px solid #e1e2e6;
+	font-size: 0.85rem;
+	cursor: pointer;
+	transition: all 0.2s;
+}
+
+.stack-chip:hover {
+	border-color: #6c5ce7;
+	color: #6c5ce7;
+}
+
+.stack-chip.active {
+	background: #6c5ce7;
+	color: white;
+	border-color: #6c5ce7;
+}
+
+/* ===== 4. 게시글 그리드 레이아웃 ===== */
+.recruit-content {
+	display: flex;
+	flex-direction: column;
+	gap: 1rem;
+}
+
+.recruit-count {
+	font-size: 1rem;
+	color: #636e72;
 	margin-bottom: 0.5rem;
 }
 
-.recruit-card p {
-	font-size: 0.95rem;
-	color: #555;
-	margin-bottom: 1rem;
-	flex-grow: 1;
+.recruit-count span {
+	color: #6c5ce7;
+	font-weight: bold;
 }
 
+.recruit-posts {
+	display: grid;
+	gap: 2rem;
+	/* 🌟 한 줄에 4개 유지, 화면 작아지면 자동 조절 */
+	grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+}
+
+/* ===== 5. 카드 컴포넌트 스타일 ===== */
+.recruit-card {
+	background: white;
+	padding: 1.8rem;
+	border-radius: 16px;
+	border: 1px solid #f1f2f6;
+	box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+	transition: all 0.3s ease;
+	cursor: pointer;
+	display: flex;
+	flex-direction: column;
+	position: relative;
+}
+
+.recruit-card:hover {
+	transform: translateY(-8px);
+	box-shadow: 0 12px 25px rgba(108, 92, 231, 0.15);
+	border-color: #a29bfe;
+}
+
+.recruit-card h3 {
+	font-size: 1.35rem;
+	font-weight: 700;
+	line-height: 1.4;
+	margin-bottom: 1rem;
+	color: #2d3436;
+}
+
+/* 태그 그룹 */
 .tags {
 	display: flex;
 	flex-wrap: wrap;
 	gap: 0.5rem;
-	margin-bottom: 1rem;
+	margin-bottom: 1.5rem;
 }
 
 .tag {
-	background-color: #edf2ff;
-	color: #5a67f2;
-	padding: 0.25rem 0.6rem;
+	background-color: #f0f3ff;
+	color: #6c5ce7;
+	padding: 0.3rem 0.7rem;
 	border-radius: 6px;
-	font-size: 0.8rem;
-}
-
-/* ===== Card Detail Button ===== */
-.btn-detail {
-	background-color: #6c5ce7;
-	color: white;
-	border: none;
-	padding: 0.5rem 0.9rem;
-	border-radius: 6px;
-	cursor: pointer;
-	font-size: 0.9rem;
-	transition: 0.3s;
-}
-
-.btn-detail:hover {
-	background-color: #5a50c9;
-}
-
-/* position 태그 스타일 */
-.position-tag {
-	font-size: 0.8rem;
-	padding: 0.3rem 0.8rem;
-	border-radius: 20px;
+	font-size: 0.75rem;
 	font-weight: 600;
-	background: #d0e6ff;
-	color: #0a66c2;
-	user-select: none;
-	white-space: nowrap;
-	margin-left: 0.3rem;
+}
+
+.position-tag {
+	background-color: #e3f2fd;
+	color: #1976d2;
+}
+
+/* 로딩 및 데이터 없음 */
+.loading,
+.no-posts {
+	grid-column: 1 / -1;
+	text-align: center;
+	padding: 5rem 0;
+	color: #b2bec3;
+	font-size: 1.2rem;
 }

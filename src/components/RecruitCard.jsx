@@ -20,11 +20,21 @@ const RecruitCard = ({
 	} = recruit;
 
 	/**
+	 * 1. 마감 여부 확인 로직 (추가됨)
+	 */
+	const today = new Date();
+	today.setHours(0, 0, 0, 0); // 시간 제외 날짜만 비교
+	const targetDate = new Date(deadLine);
+	targetDate.setHours(0, 0, 0, 0);
+
+	// 마감일이 오늘보다 이전이면 마감된 것으로 처리
+	const isExpired = deadLine && targetDate < today;
+
+	/**
 	 * 헬퍼 함수: Enum 리스트에서 value와 일치하는 label을 찾아 반환
 	 */
 	const getLabel = (optionList, value) => {
 		if (!optionList || optionList.length === 0) return value;
-		// 서버 숫자가 문자열로 올 수도 있으므로 유연하게 비교
 		const found = optionList.find((o) => String(o.value) === String(value));
 		return found ? found.label : value;
 	};
@@ -37,21 +47,66 @@ const RecruitCard = ({
 	// CSS 클래스용 (1: 스터디, 2: 프로젝트 가정)
 	const typeClass = String(type) === "1" ? "study" : "project";
 
+	/**
+	 * 2. 클릭 핸들러 (수정됨)
+	 */
+	const handleCardClick = () => {
+		if (isExpired) {
+			alert("마감된 모집글입니다.");
+			return;
+		}
+		onClick();
+	};
+
 	return (
 		<div
-			className="recruit-card"
-			onClick={onClick}
-			style={{ cursor: "pointer" }}
+			className={`recruit-card ${isExpired ? "expired" : ""}`}
+			onClick={handleCardClick}
+			style={{
+				cursor: isExpired ? "not-allowed" : "pointer",
+				position: "relative", // 마감 문구 배치를 위해 필요
+			}}
 		>
+			{/* 3. 마감된 경우 나타나는 오버레이 (추가됨) */}
+			{isExpired && (
+				<div
+					style={{
+						position: "absolute",
+						top: 0,
+						left: 0,
+						right: 0,
+						bottom: 0,
+						backgroundColor: "rgba(255, 255, 255, 0.7)",
+						display: "flex",
+						alignItems: "center",
+						justifyContent: "center",
+						zIndex: 5,
+						borderRadius: "8px",
+					}}
+				>
+					<span
+						style={{
+							background: "gray",
+							color: "#fff",
+							padding: "5px 10px",
+							borderRadius: "4px",
+							fontWeight: "bold",
+							fontSize: "0.9rem",
+						}}
+					>
+						모집 마감
+					</span>
+				</div>
+			)}
+
 			<div className="card-top-tags">
 				{type !== undefined && (
 					<span className={`category-tag category-${typeClass}`}>
-						{/* 🌟 서버 API 기반 라벨 매핑 */}
 						{getLabel(options.types, type)}
 					</span>
 				)}
-				{/* 모집 상태가 OPEN(1)인 경우 */}
-				{(status === "OPEN" || status === 1) && (
+				{/* 모집 중 상태이고 마감이 아닐 때만 '모집 중' 표시 */}
+				{(status === "OPEN" || status === 1) && !isExpired && (
 					<span className="category-tag category-new">🔥 모집 중</span>
 				)}
 			</div>
@@ -60,7 +115,6 @@ const RecruitCard = ({
 			<h3 className="card-title">{title}</h3>
 
 			<div className="tags">
-				{/* 🌟 포지션 매핑: 숫자 배열 -> 라벨들 */}
 				{positions.length > 0 && (
 					<div
 						className="positions"
@@ -74,7 +128,6 @@ const RecruitCard = ({
 					</div>
 				)}
 
-				{/* 🌟 기술 스택 매핑: 숫자 배열 -> 라벨들 */}
 				{stacks.length > 0 && (
 					<div
 						className="stacks"
