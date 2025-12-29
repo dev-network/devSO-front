@@ -3,6 +3,7 @@ import { useNavigate, useParams } from "react-router-dom"; // useParams 추가 �
 import { useAuth } from "../contexts/AuthContext";
 import { getProfile } from "../api";
 import "../styles/ProfilePage.css";
+import { getImageUrl } from "../api";
 
 const ProfilePage = () => {
   // 1. URL 파라미터 추출 (ReferenceError 해결 핵심)
@@ -51,7 +52,7 @@ const ProfilePage = () => {
       <header className="profile-header">
         <div className="header-left">
           <img
-            src={profileData.profileImageUrl || "https://via.placeholder.com/150"}
+            src={profileData.profileImageUrl ? getImageUrl(profileData.profileImageUrl) : "https://via.placeholder.com/150"}
             alt="Profile"
             className="profile-avatar"
           />

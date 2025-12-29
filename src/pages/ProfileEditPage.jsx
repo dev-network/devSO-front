@@ -22,6 +22,7 @@ const ProfileEditPage = () => {
     profileImageUrl: '',
     phone: '',      // phoneNumber -> phone
     portfolio: '',  // blogUrl/githubUrl -> portfolio
+    email: '',
   });
 
   const [educations, setEducations] = useState([]);
@@ -30,12 +31,13 @@ const ProfileEditPage = () => {
   const [certis, setCertis] = useState([]); // certificates -> certis (백엔드 필드명 일치)
   const [skills, setSkills] = useState([]);
 
-  useEffect(() => {
+ useEffect(() => {
     if (currentUser?.username) {
       getProfile(currentUser.username)
         .then((response) => {
-          // axios 응답 구조에 따라 response.data 또는 response.data.data 확인 필요
-          const data = response.data; 
+          // ✅ 핵심 수정: response.data의 구조를 명확히 확인하여 매핑
+          // 만약 서버 응답이 { data: { name: ... } } 식이라면 response.data.data를 사용하세요.
+          const data = response.data.data || response.data; 
           
           setProfileData({
             name: data.name || '',
@@ -43,11 +45,14 @@ const ProfileEditPage = () => {
             profileImageUrl: data.profileImageUrl || '',
             phone: data.phone || '',
             portfolio: data.portfolio || '',
+            email: data.email || '',
           });
+          
+          // 리스트 데이터들도 안전하게 설정
           setEducations(data.educations || []);
           setCareers(data.careers || []);
           setActivities(data.activities || []);
-          setCertis(data.certis || []); // 필드명 변경 반영
+          setCertis(data.certis || []);
           setSkills(data.skills || []);
           setLoading(false);
         })
@@ -61,28 +66,40 @@ const ProfileEditPage = () => {
   const handleSave = async () => {
     if (!currentUser?.username) return;
 
-    // 2. 백엔드 DTO(ProfileUpdateRequest) 구조와 정확히 일치시켜 구성
+    // 포트폴리오 유효성 검사
+    if (profileData.portfolio && !profileData.portfolio.includes('@')) {
+      alert('포트폴리오 주소에는 @가 포함되어야 합니다.');
+      return;
+    }
+
+    // ✅ 핵심 수정: totalData를 만들 때 profileData 안의 값들이 확실히 제자리에 있는지 재확인
     const totalData = {
-      ...profileData,
-      educations,
-      careers,
-      activities,
-      certis,
-      skills,// certificates -> certis
-      // skills 필드가 백엔드 User 엔티티에 없다면 무시되거나 추가 구현 필요
+      name: profileData.name,
+      bio: profileData.bio,
+      profileImageUrl: profileData.profileImageUrl,
+      phone: profileData.phone,
+      portfolio: profileData.portfolio,
+      email: profileData.email,
+      educations: educations,
+      careers: careers,
+      activities: activities,
+      certis: certis,
+      skills: skills,
     };
+
+    console.log("최종 전송 데이터 확인:", totalData); 
 
     try {
       await updateProfile(currentUser.username, totalData);
       alert('프로필이 성공적으로 저장되었습니다.');
-      navigate(`/profile/${currentUser.username}`); // 수정 후 본인 프로필 페이지로 이동
+      navigate(`/profile/${currentUser.username}`);
     } catch (err) {
       console.error('Failed to save profile:', err);
-      alert('프로필 저장에 실패했습니다.');
+      // ✅ 에러가 났을 때 DB 에러 메시지(Too long 등)를 확인할 수 있도록 함
+      const errorMsg = err.response?.data?.message || err.response?.data || '저장 실패';
+      alert(`저장 실패: ${errorMsg}`);
     }
   };
-
-  if (loading) return <div className="loading">데이터를 불러오는 중...</div>;
 
   return (
     <div className="profile-edit-container">
