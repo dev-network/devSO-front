@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import { getPost, getImageUrl, likePost, unlikePost } from "../api";
+import { deletePost, getPost, getImageUrl, likePost, unlikePost } from "../api";
 import { useAuth } from "../contexts/AuthContext";
 import Swal from "sweetalert2";
 import "../styles/PostDetail.css";
@@ -119,6 +119,40 @@ const PostDetailPage = () => {
   const processedMarkdown = processMarkdown(markdownWithoutDuplicatedFirstImage);
   const isOwner = Boolean(isAuthenticated && user?.id && post?.author?.id && user.id === post.author.id);
 
+  const handleDeletePost = async () => {
+    if (!isOwner) return;
+
+    const result = await Swal.fire({
+      icon: "warning",
+      title: "게시글 삭제",
+      text: "정말 삭제할까요?",
+      showCancelButton: true,
+      confirmButtonText: "삭제",
+      cancelButtonText: "취소",
+      confirmButtonColor: "#d33",
+    });
+
+    if (!result.isConfirmed) return;
+
+    try {
+      await deletePost(id);
+      await Swal.fire({
+        icon: "success",
+        title: "삭제 완료",
+        text: "게시글이 삭제되었습니다.",
+        confirmButtonText: "확인",
+      });
+      navigate("/posts");
+    } catch (err) {
+      Swal.fire({
+        icon: "error",
+        title: "오류",
+        text: err.response?.data?.error?.message || "삭제에 실패했습니다.",
+        confirmButtonText: "확인",
+      });
+    }
+  };
+
   // 좋아요 토글 핸들러
   const handleLikeToggle = async () => {
     if (!isAuthenticated) {
@@ -212,6 +246,16 @@ const PostDetailPage = () => {
                   onClick={() => navigate(`/posts/${id}/edit`)}
                 >
                   수정
+                </button>
+              )}
+              {isOwner && (
+                <button
+                  type="button"
+                  className="post-detail-edit-button"
+                  onClick={handleDeletePost}
+                  style={{ marginLeft: "8px" }}
+                >
+                  삭제
                 </button>
               )}
             </div>
