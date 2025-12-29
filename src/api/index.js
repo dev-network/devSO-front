@@ -3,6 +3,23 @@ import { data } from "react-router-dom";
 
 export const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8080";
 
+// 비로그인 조회수 식별용 쿠키(서버에서 IP+쿠키로 해시 처리)
+const VIEW_COOKIE_NAME = "devso_vid";
+const ensureViewCookie = () => {
+	if (typeof document === "undefined") return;
+	if (document.cookie.includes(`${VIEW_COOKIE_NAME}=`)) return;
+
+	// eslint-disable-next-line no-restricted-globals
+	const vid =
+		typeof crypto !== "undefined" && crypto.randomUUID
+			? crypto.randomUUID()
+			: `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+
+	// 1년 유지
+	const maxAge = 60 * 60 * 24 * 365;
+	document.cookie = `${VIEW_COOKIE_NAME}=${vid}; path=/; max-age=${maxAge}`;
+};
+
 // 이미지 URL에 API 서버 주소 추가
 export const getImageUrl = (path) => {
 	if (!path) return null;
@@ -59,6 +76,12 @@ export const getPost = (id) => api.get(`/api/posts/${id}`);
 export const createPost = (data) => api.post("/api/posts", data);
 export const updatePost = (id, data) => api.put(`/api/posts/${id}`, data);
 export const deletePost = (id) => api.delete(`/api/posts/${id}`);
+export const recordPostView = (id) => {
+	ensureViewCookie();
+	return api.post(`/api/posts/${id}/view`, null, {
+		withCredentials: true,
+	});
+};
 
 // 사용자 API
 export const getProfile = (username) => {

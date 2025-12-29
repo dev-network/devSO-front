@@ -2,7 +2,14 @@ import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import { deletePost, getPost, getImageUrl, likePost, unlikePost } from "../api";
+import {
+  deletePost,
+  getPost,
+  getImageUrl,
+  likePost,
+  unlikePost,
+  recordPostView,
+} from "../api";
 import { useAuth } from "../contexts/AuthContext";
 import Swal from "sweetalert2";
 import "../styles/PostDetail.css";
@@ -24,6 +31,23 @@ const PostDetailPage = () => {
         const postData = response.data?.data;
         if (postData) {
           setPost(postData);
+          // 조회수 기록 (StrictMode에서 mount가 2번 발생하므로, 클라이언트에서 중복 호출 방지)
+          // 같은 5초 버킷에서는 1번만 호출
+          const bucketSeconds = 5;
+          const bucket = Math.floor(Date.now() / 1000 / bucketSeconds);
+          const ssKey = `devso_post_view_sent:${id}:${bucket}`;
+          if (!sessionStorage.getItem(ssKey)) {
+            sessionStorage.setItem(ssKey, "1");
+            try {
+              const viewRes = await recordPostView(id);
+              const viewCount = viewRes.data?.data?.viewCount;
+              if (viewCount !== undefined) {
+                setPost((prev) => (prev ? { ...prev, viewCount } : prev));
+              }
+            } catch {
+              // 조회수 실패는 UX에 치명적이지 않으므로 무시
+            }
+          }
         } else {
           setError("게시글을 찾을 수 없습니다.");
         }
@@ -239,6 +263,10 @@ const PostDetailPage = () => {
                 <span>💬</span>
                 <span>{post.commentCount || 0}</span>
               </span>
+              <span className="post-detail-stat-item">
+                <span>👁️</span>
+                <span>{post.viewCount || 0}</span>
+              </span>
               {isOwner && (
                 <button
                   type="button"
@@ -253,7 +281,7 @@ const PostDetailPage = () => {
                   type="button"
                   className="post-detail-edit-button"
                   onClick={handleDeletePost}
-                  style={{ marginLeft: "8px" }}
+                  style={{ marginLeft: "0.5px" }}
                 >
                   삭제
                 </button>
