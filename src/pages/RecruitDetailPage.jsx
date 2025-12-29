@@ -20,8 +20,7 @@ import {
 } from "../api";
 import { useAuth } from "../contexts/AuthContext";
 import { Icon } from "@iconify/react";
-// 🌟 채팅 페이지와 동일한 MUI 컴포넌트 추가
-import { Avatar, Badge } from "@mui/material";
+import { Avatar } from "@mui/material";
 
 import "react-quill-new/dist/quill.snow.css";
 
@@ -81,55 +80,6 @@ export default function RecruitDetailPage() {
 		if (id) fetchData();
 	}, [id]);
 
-	const handleCommentSubmit = async () => {
-		if (!commentInput.trim()) return;
-		try {
-			await createRecruitComment(id, {
-				content: commentInput,
-				parentId: replyTo ? replyTo.id : null,
-			});
-			setCommentInput("");
-			setReplyTo(null);
-			fetchData();
-		} catch (err) {
-			alert("댓글 등록에 실패했습니다.");
-		}
-	};
-
-	const handleCommentDelete = async (commentId) => {
-		if (!window.confirm("댓글을 삭제하시겠습니까?")) return;
-		try {
-			await deleteRecruitComment(id, commentId);
-			fetchData();
-		} catch (err) {
-			alert("댓글 삭제에 실패했습니다.");
-		}
-	};
-
-	const startEdit = (comment) => {
-		setEditingCommentId(comment.id);
-		setEditInput(comment.content);
-		setReplyTo(null);
-	};
-
-	const handleCommentUpdate = async (commentId) => {
-		if (!editInput.trim()) return;
-		try {
-			await updateRecruitComment(id, commentId, { content: editInput });
-			setEditingCommentId(null);
-			fetchData();
-		} catch (err) {
-			alert("댓글 수정에 실패했습니다.");
-		}
-	};
-
-	const startReply = (comment) => {
-		setReplyTo({ id: comment.id, username: comment.author?.username });
-		setEditingCommentId(null);
-		setCommentInput("");
-		document.getElementById("comment-input-field")?.focus();
-	};
-
 	const getLabel = (optionList, serverValue) => {
 		if (
 			!optionList ||
@@ -146,6 +96,72 @@ export default function RecruitDetailPage() {
 			return isValueMatch || isKeyMatch;
 		});
 		return found ? found.label : serverValue;
+	};
+
+	const getStackDetails = (stackData) => {
+		if (!stackData || !options.stacks.length) return [];
+		return stackData.map((item) => {
+			const val = typeof item === "object" ? item.value : item;
+			return (
+				options.stacks.find((s) => String(s.value) === String(val)) || {
+					label: val,
+				}
+			);
+		});
+	};
+
+	// 🌟 댓글 등록 로직 복구
+	const handleCommentSubmit = async () => {
+		if (!commentInput.trim()) return;
+		try {
+			await createRecruitComment(id, {
+				content: commentInput,
+				parentId: replyTo ? replyTo.id : null,
+			});
+			setCommentInput("");
+			setReplyTo(null);
+			fetchData(); // 등록 후 목록 갱신
+		} catch (err) {
+			alert("댓글 등록에 실패했습니다.");
+		}
+	};
+
+	// 🌟 댓글 삭제 로직 복구
+	const handleCommentDelete = async (commentId) => {
+		if (!window.confirm("댓글을 삭제하시겠습니까?")) return;
+		try {
+			await deleteRecruitComment(id, commentId);
+			fetchData(); // 삭제 후 목록 갱신
+		} catch (err) {
+			alert("댓글 삭제에 실패했습니다.");
+		}
+	};
+
+	// 🌟 댓글 수정 시작 로직 복구
+	const startEdit = (comment) => {
+		setEditingCommentId(comment.id);
+		setEditInput(comment.content);
+		setReplyTo(null);
+	};
+
+	// 🌟 댓글 수정 완료 로직 복구
+	const handleCommentUpdate = async (commentId) => {
+		if (!editInput.trim()) return;
+		try {
+			await updateRecruitComment(id, commentId, { content: editInput });
+			setEditingCommentId(null);
+			fetchData(); // 수정 후 목록 갱신
+		} catch (err) {
+			alert("댓글 수정에 실패했습니다.");
+		}
+	};
+
+	// 🌟 답글 달기 시작 로직 복구
+	const startReply = (comment) => {
+		setReplyTo({ id: comment.id, username: comment.author?.username });
+		setEditingCommentId(null);
+		setCommentInput("");
+		document.getElementById("comment-input-field")?.focus();
 	};
 
 	const handleBookmarkToggle = async () => {
@@ -211,7 +227,7 @@ export default function RecruitDetailPage() {
 	return (
 		<div className="max-w-4xl mx-auto px-6 py-10 bg-white min-h-screen">
 			<button
-				onClick={() => navigate(-1)}
+				onClick={() => navigate("/recruits")}
 				className="mb-8 text-gray-400 hover:text-black transition flex items-center gap-1"
 			>
 				<Icon icon="mdi:arrow-left" width="20" height="20" />
@@ -231,7 +247,6 @@ export default function RecruitDetailPage() {
 				</h1>
 				<div className="flex justify-between items-center pb-8 border-b border-gray-50">
 					<div className="flex items-center gap-3">
-						{/* 🌟 채팅 페이지와 동일한 방식 적용 */}
 						<Avatar
 							src={getImageUrl(recruit.userProfileImageUrl)}
 							sx={{
@@ -276,7 +291,6 @@ export default function RecruitDetailPage() {
 				</div>
 			</header>
 
-			{/* 정보 섹션 생략... */}
 			<section className="grid grid-cols-1 md:grid-cols-2 gap-y-6 gap-x-16 pb-12 border-b border-gray-50">
 				<InfoItem
 					label="모집 구분"
@@ -305,8 +319,8 @@ export default function RecruitDetailPage() {
 				/>
 				<InfoItem
 					label="사용 언어"
-					value={recruit.stacks?.map((s) => getLabel(options.stacks, s))}
-					isBadge
+					value={getStackDetails(recruit.stacks)}
+					isStack
 				/>
 			</section>
 
@@ -349,7 +363,7 @@ export default function RecruitDetailPage() {
 				</div>
 			</footer>
 
-			{/* --- 댓글 섹션 --- */}
+			{/* 댓글 섹션 (전체 로직 포함) */}
 			<section className="mt-10 pb-20">
 				<h3 className="font-bold mb-6 text-gray-900 text-lg">
 					댓글{" "}
@@ -358,7 +372,6 @@ export default function RecruitDetailPage() {
 					</span>
 				</h3>
 
-				{/* 내 댓글 작성란 */}
 				<div className="bg-gray-50 p-5 rounded-2xl flex flex-col gap-3 border border-gray-100 shadow-sm mb-10">
 					{replyTo && (
 						<div className="flex justify-between items-center px-3 py-1.5 bg-blue-50 rounded-lg text-xs font-bold text-blue-600">
@@ -372,7 +385,6 @@ export default function RecruitDetailPage() {
 						</div>
 					)}
 					<div className="flex items-center gap-4">
-						{/* 🌟 내 아바타 */}
 						<Avatar
 							src={getImageUrl(user?.profileImageUrl)}
 							sx={{ width: 36, height: 36, bgcolor: "#fff" }}
@@ -405,12 +417,10 @@ export default function RecruitDetailPage() {
 					</div>
 				</div>
 
-				{/* 댓글 목록 */}
 				<div className="space-y-8">
 					{comments.map((comment) => (
 						<div key={comment.id} className="flex flex-col gap-4">
 							<div className="flex gap-4 group">
-								{/* 🌟 댓글 작성자 아바타 */}
 								<Avatar
 									src={getImageUrl(comment.author?.profileImageUrl)}
 									sx={{
@@ -488,15 +498,12 @@ export default function RecruitDetailPage() {
 									)}
 								</div>
 							</div>
-
-							{/* 자식 댓글 */}
 							{comment.children?.map((child) => (
 								<div
 									key={child.id}
 									className="ml-14 space-y-6 border-l-2 border-gray-50 pl-6 mt-2"
 								>
 									<div className="flex gap-3">
-										{/* 🌟 자식 댓글 아바타 */}
 										<Avatar
 											src={getImageUrl(child.author?.profileImageUrl)}
 											sx={{
@@ -553,7 +560,32 @@ export default function RecruitDetailPage() {
 	);
 }
 
-function InfoItem({ label, value, isBadge }) {
+function InfoItem({ label, value, isBadge, isStack }) {
+	if (isStack && Array.isArray(value)) {
+		return (
+			<div className="flex items-start text-[15px]">
+				<span className="w-24 text-gray-400 shrink-0 font-medium">{label}</span>
+				<div className="flex flex-wrap gap-2">
+					{value.map((stack, idx) => (
+						<div
+							key={idx}
+							className="flex items-center gap-1.5 bg-gray-50 border border-gray-200 text-gray-700 px-3 py-1 rounded-full text-xs font-bold"
+						>
+							{stack.imageUrl && (
+								<img
+									src={stack.imageUrl}
+									alt={stack.label}
+									className="w-3.5 h-3.5 object-contain"
+								/>
+							)}
+							<span>{stack.label}</span>
+						</div>
+					))}
+					{value.length === 0 && <span className="text-gray-300">미정</span>}
+				</div>
+			</div>
+		);
+	}
 	const displayValue = Array.isArray(value)
 		? value.filter(Boolean).join(", ")
 		: value || "미정";

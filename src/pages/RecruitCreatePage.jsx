@@ -70,56 +70,31 @@ export default function RecruitCreatePage() {
 					getMemberCount(),
 				]);
 
-				// 🌟 백엔드에서 준 key(영문명)를 포함하여 매핑
 				const mappedOptions = {
-					types: t.data.map((v) => ({
-						value: v.value,
-						label: v.label,
-						key: v.key,
-					})),
-					positions: p.data.map((v) => ({
-						value: v.value,
-						label: v.label,
-						key: v.key,
-					})),
-					stacks: s.data.map((v) => ({
-						value: v.value,
-						label: v.label,
-						key: v.key,
-					})),
-					progress: pr.data.map((v) => ({
-						value: v.value,
-						label: v.label,
-						key: v.key,
-					})),
-					contacts: c.data.map((v) => ({
-						value: v.value,
-						label: v.label,
-						key: v.key,
-					})),
-					durations: d.data.map((v) => ({
-						value: v.value,
-						label: v.label,
-						key: v.key,
-					})),
-					members: m.data.map((v) => ({
-						value: v.value,
-						label: v.label,
-						key: v.key,
-					})),
+					types: t.data,
+					positions: p.data,
+					stacks: s.data, // 🌟 백엔드 StackResponse (value, label, key, imageUrl) 포함
+					progress: pr.data,
+					contacts: c.data,
+					durations: d.data,
+					members: m.data,
 				};
 				setOptions(mappedOptions);
 
-				// 🌟 수정 모드일 때 매핑 로직 (영문 Key와 숫자 Value 모두 대응)
+				// 🌟 수정 모드 데이터 매핑 로직 개선
 				if (isEditMode && editData) {
 					const findOption = (opts, val) => {
-						if (!val) return null;
+						if (val === undefined || val === null) return null;
+						// val이 객체일 경우 value 추출, 아닐 경우 그대로 사용
+						const targetVal = typeof val === "object" ? val.value : val;
+
 						return (
 							opts.find(
 								(o) =>
-									String(o.value) === String(val) ||
+									String(o.value) === String(targetVal) ||
 									(o.key &&
-										String(o.key).toUpperCase() === String(val).toUpperCase())
+										String(o.key).toUpperCase() ===
+											String(targetVal).toUpperCase())
 							) || null
 						);
 					};
@@ -134,24 +109,30 @@ export default function RecruitCreatePage() {
 					);
 					setTotalCount(findOption(mappedOptions.members, editData.totalCount));
 
-					// Multi Select (포지션, 스택)
+					// Multi Select (포지션 매핑)
 					if (Array.isArray(editData.positions)) {
-						const posValues = editData.positions.map(String);
+						const posItems = editData.positions.map((p) =>
+							typeof p === "object" ? String(p.value) : String(p)
+						);
 						setPosition(
 							mappedOptions.positions.filter(
 								(o) =>
-									posValues.includes(String(o.value)) ||
-									posValues.includes(String(o.key))
+									posItems.includes(String(o.value)) ||
+									(o.key && posItems.includes(String(o.key)))
 							)
 						);
 					}
+
+					// 🌟 기술 스택 매핑 (핵심 수정 부분)
 					if (Array.isArray(editData.stacks)) {
-						const stackValues = editData.stacks.map(String);
+						const stackItems = editData.stacks.map((s) =>
+							typeof s === "object" ? String(s.value) : String(s)
+						);
 						setStacks(
 							mappedOptions.stacks.filter(
 								(o) =>
-									stackValues.includes(String(o.value)) ||
-									stackValues.includes(String(o.key))
+									stackItems.includes(String(o.value)) ||
+									(o.key && stackItems.includes(String(o.key)))
 							)
 						);
 					}
@@ -181,7 +162,7 @@ export default function RecruitCreatePage() {
 			positions: position.map((p) => p.value),
 			progressType: progressType?.value ?? null,
 			duration: duration?.value ?? null,
-			stacks: stacks.map((s) => s.value),
+			stacks: stacks.map((s) => s.value), // ID값만 전송
 			totalCount: totalCount ? Number(totalCount.value) : 0,
 			deadLine,
 			contactMethod: contactMethod?.value ?? null,
@@ -205,6 +186,16 @@ export default function RecruitCreatePage() {
 		}
 	};
 
+	// 🌟 Select 컴포넌트 커스텀: 아이콘 표시
+	const formatOptionLabel = ({ label, imageUrl }) => (
+		<div className="flex items-center gap-2">
+			{imageUrl && (
+				<img src={imageUrl} alt={label} className="w-4 h-4 object-contain" />
+			)}
+			<span>{label}</span>
+		</div>
+	);
+
 	const selectStyles = useMemo(
 		() => ({
 			control: (base) => ({
@@ -213,6 +204,11 @@ export default function RecruitCreatePage() {
 				borderColor: "#e5e7eb",
 				padding: "0.1rem",
 				"&:hover": { borderColor: "#a5b4fc" },
+			}),
+			multiValue: (base) => ({
+				...base,
+				backgroundColor: "#f3f4f6",
+				borderRadius: "0.375rem",
 			}),
 		}),
 		[]
@@ -246,7 +242,7 @@ export default function RecruitCreatePage() {
 	];
 
 	return (
-		<div className="max-w-4xl mx-auto p-8">
+		<div className="max-w-4xl mx-auto p-8 bg-white min-h-screen">
 			<h1 className="text-3xl font-bold mb-8">
 				{isEditMode ? "모집글 수정" : "팀원 모집글 작성"}
 			</h1>
@@ -261,7 +257,9 @@ export default function RecruitCreatePage() {
 					</h2>
 					<div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
 						<div>
-							<label className="block mb-1 font-semibold">모집 구분</label>
+							<label className="block mb-1 font-semibold text-gray-700 text-sm">
+								모집 구분
+							</label>
 							<Select
 								options={options.types}
 								value={type}
@@ -271,7 +269,9 @@ export default function RecruitCreatePage() {
 							/>
 						</div>
 						<div>
-							<label className="block mb-1 font-semibold">모집 인원</label>
+							<label className="block mb-1 font-semibold text-gray-700 text-sm">
+								모집 인원
+							</label>
 							<Select
 								options={options.members}
 								value={totalCount}
@@ -281,7 +281,9 @@ export default function RecruitCreatePage() {
 							/>
 						</div>
 						<div>
-							<label className="block mb-1 font-semibold">진행 방식</label>
+							<label className="block mb-1 font-semibold text-gray-700 text-sm">
+								진행 방식
+							</label>
 							<Select
 								options={options.progress}
 								value={progressType}
@@ -291,17 +293,21 @@ export default function RecruitCreatePage() {
 							/>
 						</div>
 						<div>
-							<label className="block mb-1 font-semibold">모집 마감일</label>
+							<label className="block mb-1 font-semibold text-gray-700 text-sm">
+								모집 마감일
+							</label>
 							<input
 								type="date"
 								value={deadLine}
 								onChange={(e) => setDeadLine(e.target.value)}
-								className="w-full border px-3 py-[0.38rem] rounded-md focus:outline-none"
+								className="w-full border px-3 py-[0.38rem] rounded-md focus:outline-none border-gray-300"
 								required
 							/>
 						</div>
 						<div>
-							<label className="block mb-1 font-semibold">모집 포지션</label>
+							<label className="block mb-1 font-semibold text-gray-700 text-sm">
+								모집 포지션
+							</label>
 							<Select
 								options={options.positions}
 								isMulti
@@ -312,7 +318,9 @@ export default function RecruitCreatePage() {
 							/>
 						</div>
 						<div>
-							<label className="block mb-1 font-semibold">연락 방법</label>
+							<label className="block mb-1 font-semibold text-gray-700 text-sm">
+								연락 방법
+							</label>
 							<Select
 								options={options.contacts}
 								value={contactMethod}
@@ -322,7 +330,9 @@ export default function RecruitCreatePage() {
 							/>
 						</div>
 						<div>
-							<label className="block mb-1 font-semibold">진행 기간</label>
+							<label className="block mb-1 font-semibold text-gray-700 text-sm">
+								진행 기간
+							</label>
 							<Select
 								options={options.durations}
 								value={duration}
@@ -332,13 +342,15 @@ export default function RecruitCreatePage() {
 							/>
 						</div>
 						<div>
-							<label className="block mb-1 font-semibold">연락처</label>
+							<label className="block mb-1 font-semibold text-gray-700 text-sm">
+								연락처
+							</label>
 							<input
 								type="text"
 								value={contactInfo}
 								placeholder="링크 또는 연락처"
 								onChange={(e) => setContactInfo(e.target.value)}
-								className="w-full border px-3 py-[0.38rem] rounded-md focus:outline-none"
+								className="w-full border px-3 py-[0.38rem] rounded-md focus:outline-none border-gray-300"
 								required
 							/>
 						</div>
@@ -346,13 +358,17 @@ export default function RecruitCreatePage() {
 				</section>
 
 				<section>
-					<label className="block mb-2 font-semibold">기술 스택</label>
+					<label className="block mb-2 font-semibold text-gray-700 text-sm">
+						기술 스택
+					</label>
 					<Select
 						options={options.stacks}
 						isMulti
 						value={stacks}
 						onChange={setStacks}
 						styles={selectStyles}
+						getOptionLabel={(opt) => opt.label} // 🌟 텍스트 검색용
+						formatOptionLabel={formatOptionLabel} // 🌟 아이콘 렌더링용
 						placeholder="기술 스택 선택"
 					/>
 				</section>
@@ -369,7 +385,7 @@ export default function RecruitCreatePage() {
 						placeholder="글 제목"
 						value={title}
 						onChange={(e) => setTitle(e.target.value)}
-						className="w-full border px-4 py-2 rounded-lg text-lg focus:outline-none focus:ring-2 focus:ring-indigo-300"
+						className="w-full border border-gray-300 px-4 py-2 rounded-lg text-lg focus:outline-none focus:ring-2 focus:ring-indigo-300"
 						required
 					/>
 					<div className="bg-white">
@@ -389,13 +405,13 @@ export default function RecruitCreatePage() {
 					<button
 						type="button"
 						onClick={() => navigate(-1)}
-						className="px-6 py-2 border rounded-lg hover:bg-gray-100 transition"
+						className="px-6 py-2 border rounded-lg hover:bg-gray-100 transition font-bold text-gray-600"
 					>
 						취소
 					</button>
 					<button
 						type="submit"
-						className="px-6 py-2 bg-black text-white rounded-lg hover:bg-gray-800 transition"
+						className="px-6 py-2 bg-black text-white rounded-lg hover:bg-gray-800 transition font-bold"
 					>
 						{isEditMode ? "수정하기" : "등록하기"}
 					</button>

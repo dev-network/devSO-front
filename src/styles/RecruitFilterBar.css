@@ -1,0 +1,210 @@
+.filter-container {
+	margin-bottom: 2rem;
+}
+
+/* 1. 타입 탭: 간격과 폰트 크기 조정 */
+.type-tabs {
+	display: flex;
+	gap: 24px;
+	margin-bottom: 24px;
+	border-bottom: 1px solid #f0f0f0;
+}
+.type-tabs button {
+	padding: 12px 4px;
+	border: none;
+	background: none;
+	cursor: pointer;
+	font-size: 18px;
+	font-weight: 800;
+	color: #adb5bd;
+	transition: 0.2s;
+}
+.type-tabs button.active {
+	color: #212529;
+	border-bottom: 3px solid #212529;
+}
+
+/* 2. 필터 컨트롤 영역: 가로 정렬 최적화 */
+.filter-controls {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	flex-wrap: nowrap; /* 한 줄에 정렬되도록 고정 (좁을 때 wrap) */
+}
+
+/* 공통 버튼 스타일 (Chip) */
+.dropdown-btn,
+.select-filter,
+.toggle-chip {
+	height: 44px;
+	padding: 0 16px;
+	border-radius: 22px;
+	border: 1px solid #e1e4e6;
+	background: #fff;
+	cursor: pointer;
+	font-size: 14px;
+	font-weight: 500;
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	color: #495057;
+	transition: all 0.2s;
+	white-space: nowrap;
+}
+
+/* 3. 내 북마크 / 모집중만 보기 (가로 정렬 보강) */
+.toggle-group {
+	display: flex;
+	flex-direction: row; /* 명시적으로 가로 방향 설정 */
+	gap: 8px;
+	align-items: center;
+	flex-shrink: 0; /* 너비가 줄어들지 않도록 방지 */
+}
+
+.toggle-chip.active {
+	border-color: #00d4b1;
+	background-color: #f0fffb;
+	color: #00d4b1;
+	font-weight: 600;
+}
+
+/* 드롭다운 카운트 뱃지 */
+.count-badge {
+	background: #00d4b1;
+	color: #fff;
+	font-size: 11px;
+	width: 18px;
+	height: 18px;
+	border-radius: 50%;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+/* 4. 기술 스택 패널 및 리스트 (아이콘 포함) */
+.dropdown-wrapper {
+	position: relative;
+}
+
+.stack-dropdown-panel {
+	position: absolute;
+	top: 52px;
+	left: 0;
+	width: 640px;
+	background: #fff;
+	border: 1px solid #e1e4e6;
+	border-radius: 16px;
+	box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+	padding: 24px;
+	z-index: 1000;
+}
+
+.stack-category-tabs {
+	display: flex;
+	gap: 16px;
+	border-bottom: 1px solid #f1f3f5;
+	margin-bottom: 20px;
+}
+
+.stack-category-tabs button {
+	padding-bottom: 10px;
+	border: none;
+	background: none;
+	cursor: pointer;
+	font-weight: 700;
+	color: #adb5bd;
+	font-size: 15px;
+}
+
+.stack-category-tabs button.active {
+	color: #212529;
+	border-bottom: 2px solid #212529;
+}
+
+.stack-list {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+	max-height: 300px;
+	overflow-y: auto; /* 스택이 많을 경우 스크롤 */
+}
+
+.stack-item {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	padding: 6px 14px;
+	border-radius: 20px;
+	border: 1px solid #f1f3f5;
+	background: #fff;
+	cursor: pointer;
+	font-size: 14px;
+}
+
+/* 🌟 스택 아이콘 이미지 스타일 */
+.stack-icon-img {
+	width: 20px;
+	height: 20px;
+	object-fit: contain;
+}
+
+.stack-item.active {
+	border-color: #00d4b1;
+	background: #f0fffb;
+	color: #00d4b1;
+	font-weight: 600;
+}
+
+/* 5. 필터 초기화 버튼 */
+.reset-btn {
+	display: flex;
+	align-items: center;
+	gap: 4px;
+	background: none;
+	border: none;
+	color: #999;
+	font-size: 14px;
+	font-weight: 500;
+	cursor: pointer;
+	padding: 0 8px;
+	transition: color 0.2s;
+	flex-shrink: 0;
+}
+
+.reset-btn:hover {
+	color: #333;
+}
+
+.reset-icon {
+	font-size: 12px;
+}
+
+/* 6. 검색창 스타일 */
+.search-bar {
+	position: relative;
+	margin-left: auto; /* 우측 끝으로 밀기 */
+	min-width: 280px;
+}
+
+.search-bar input {
+	width: 100%;
+	height: 44px;
+	border-radius: 22px;
+	border: 1px solid #e1e4e6;
+	background: #f8f9fa;
+	padding-left: 44px;
+	outline: none;
+	transition: 0.2s;
+}
+
+.search-bar input:focus {
+	border-color: #adb5bd;
+	background: #fff;
+}
+
+.search-icon {
+	position: absolute;
+	left: 18px;
+	top: 13px;
+	color: #adb5bd;
+}
