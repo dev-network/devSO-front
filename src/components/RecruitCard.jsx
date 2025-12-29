@@ -11,10 +11,10 @@ const RecruitCard = ({
 		type,
 		positions = [],
 		title = "",
-		// 🌟 이제 stacks는 숫자 배열이 아니라 객체 배열입니다.
 		stacks = [],
 		username = "익명",
 		viewCount = 0,
+		commentCount = 0,
 		status,
 		deadLine,
 		bookmarked = false,
@@ -27,10 +27,6 @@ const RecruitCard = ({
 
 	const isExpired = deadLine && targetDate < today;
 
-	/**
-	 * 헬퍼 함수: Enum 리스트에서 value와 일치하는 label을 찾아 반환
-	 * (type이나 positions는 아직 숫자일 수 있으므로 유지합니다)
-	 */
 	const getLabel = (optionList, value) => {
 		if (!optionList || optionList.length === 0) return value;
 		const found = optionList.find((o) => String(o.value) === String(value));
@@ -58,8 +54,43 @@ const RecruitCard = ({
 			style={{
 				cursor: isExpired ? "not-allowed" : "pointer",
 				position: "relative",
+				display: "flex",
+				flexDirection: "column",
+				height: "380px",
+				minHeight: "380px",
+				padding: "1.5rem",
+				backgroundColor: "#fff",
+				borderRadius: "12px",
+				border: "1px solid #eee",
+				transition: "transform 0.2s, box-shadow 0.2s",
 			}}
 		>
+			{/* 북마크 버튼 */}
+			<button
+				type="button"
+				onClick={(e) => {
+					e.stopPropagation();
+					onBookmarkClick();
+				}}
+				style={{
+					position: "absolute",
+					top: "1.2rem",
+					right: "1.2rem",
+					background: "none",
+					border: "none",
+					cursor: "pointer",
+					zIndex: 10,
+					padding: "4px",
+				}}
+			>
+				<Icon
+					icon={bookmarked ? "mdi:bookmark" : "mdi:bookmark-outline"}
+					width="26"
+					height="26"
+					color={bookmarked ? "#fbbf24" : "#d1d5db"}
+				/>
+			</button>
+
 			{isExpired && (
 				<div
 					style={{
@@ -73,7 +104,7 @@ const RecruitCard = ({
 						alignItems: "center",
 						justifyContent: "center",
 						zIndex: 5,
-						borderRadius: "8px",
+						borderRadius: "12px",
 					}}
 				>
 					<span
@@ -91,72 +122,147 @@ const RecruitCard = ({
 				</div>
 			)}
 
-			<div className="card-top-tags">
+			{/* 태그 영역 */}
+			<div className="card-top-tags" style={{ marginBottom: "1rem" }}>
 				{type !== undefined && (
 					<span className={`category-tag category-${typeClass}`}>
 						{getLabel(options.types, type)}
 					</span>
 				)}
 				{(status === "OPEN" || status === 1) && !isExpired && (
-					<span className="category-tag category-new">🔥 모집 중</span>
+					<span
+						className="category-tag category-new"
+						style={{ marginLeft: "6px" }}
+					>
+						🔥 모집 중
+					</span>
 				)}
 			</div>
 
-			<div className="deadline">마감일 | {formattedDeadline}</div>
-			<h3 className="card-title">{title}</h3>
+			<div
+				className="deadline"
+				style={{ fontSize: "0.85rem", color: "#888", marginBottom: "0.5rem" }}
+			>
+				마감일 | {formattedDeadline}
+			</div>
 
-			<div className="tags">
+			{/* 제목 말줄임표 처리 (2줄) */}
+			<h3
+				className="card-title"
+				style={{
+					fontSize: "1.15rem",
+					fontWeight: "bold",
+					lineHeight: "1.4",
+					height: "2.8em",
+					marginBottom: "1rem",
+					paddingRight: "1.5rem",
+					display: "-webkit-box",
+					WebkitLineClamp: 2,
+					WebkitBoxOrient: "vertical",
+					overflow: "hidden",
+					textOverflow: "ellipsis",
+				}}
+			>
+				{title}
+			</h3>
+
+			{/* 콘텐츠 영역 */}
+			<div className="tags" style={{ flex: 1, overflow: "hidden" }}>
 				{positions.length > 0 && (
 					<div
 						className="positions"
-						style={{ display: "flex", flexWrap: "wrap", gap: "0.4rem" }}
+						style={{
+							display: "flex",
+							flexWrap: "wrap",
+							gap: "0.4rem",
+							marginBottom: "1.2rem",
+						}}
 					>
-						{positions.map((pos, idx) => (
-							<span key={`pos-${idx}`} className="tag position-tag">
+						{positions.slice(0, 3).map((pos, idx) => (
+							<span
+								key={`pos-${idx}`}
+								className="tag position-tag"
+								style={{
+									fontSize: "0.75rem",
+									padding: "4px 10px", // 패딩을 조금 더 주어 안정감 있게
+									backgroundColor: "#f0f4ff", // 🌟 아주 연한 푸른색 계열로 변경 (가독성 UP)
+									color: "#4a5568", // 🌟 글자색을 조금 더 진한 회색으로 변경
+									borderRadius: "6px",
+									fontWeight: "600", // 🌟 글자를 살짝 두껍게
+									border: "1px solid #e2e8f0", // 🌟 아주 연한 테두리 추가
+								}}
+							>
 								{getLabel(options.positions, pos)}
 							</span>
 						))}
+						{positions.length > 3 && (
+							<span
+								style={{
+									fontSize: "0.75rem",
+									color: "#aaa",
+									alignSelf: "center",
+								}}
+							>
+								...
+							</span>
+						)}
 					</div>
 				)}
 
-				{/* 🌟 스택 렌더링 부분 수정 */}
+				{/* 🌟 스택: 이미지만 렌더링 */}
 				{stacks.length > 0 && (
 					<div
 						className="stacks"
 						style={{
 							display: "flex",
 							flexWrap: "wrap",
-							gap: "0.5rem",
-							marginTop: "0.8rem",
+							gap: "0.8rem",
+							alignItems: "center",
 						}}
 					>
-						{stacks.map((stack, idx) => (
-							<div
-								key={`stack-${idx}`}
-								className="stack-badge-item"
-								style={{ display: "flex", alignItems: "center", gap: "4px" }}
-							>
-								{/* 🌟 백엔드에서 온 imageUrl이 있으면 아이콘 표시 */}
-								{stack.imageUrl && (
-									<img
-										src={stack.imageUrl}
-										alt={stack.label}
-										style={{
-											width: "16px",
-											height: "16px",
-											objectFit: "contain",
-										}}
-									/>
-								)}
-								{/* 🌟 stack 자체가 객체이므로 stack.label을 직접 출력 (에러 해결 핵심!) */}
-								{/* <span className="tag">{stack.label}</span> */}
-							</div>
-						))}
+						{stacks.slice(0, 8).map(
+							(
+								stack,
+								idx // 텍스트가 없어 공간이 넉넉하므로 8개까지 허용
+							) => (
+								<div
+									key={`stack-${idx}`}
+									className="stack-image-wrapper"
+									title={stack.label}
+								>
+									{stack.imageUrl ? (
+										<img
+											src={stack.imageUrl}
+											alt={stack.label}
+											style={{
+												width: "24px", // 텍스트가 없을 때 너무 작지 않게 크기 상향
+												height: "24px",
+												objectFit: "contain",
+												filter: isExpired ? "grayscale(100%)" : "none", // 마감된 글은 아이콘도 흑백처리
+											}}
+										/>
+									) : (
+										<span style={{ fontSize: "0.7rem", color: "#ccc" }}>
+											{stack.label}
+										</span>
+									)}
+								</div>
+							)
+						)}
+						{stacks.length > 8 && (
+							<span style={{ fontSize: "0.75rem", color: "#aaa" }}>+</span>
+						)}
 					</div>
 				)}
 			</div>
 
-			<hr />
+			<hr
+				style={{
+					border: "0",
+					borderTop: "1px solid #f0f0f0",
+					margin: "1rem 0",
+				}}
+			/>
 
 			<div
 				className="card-footer"
@@ -166,33 +272,42 @@ const RecruitCard = ({
 					alignItems: "center",
 				}}
 			>
-				<div className="author">
+				<div
+					className="author"
+					style={{
+						display: "flex",
+						alignItems: "center",
+						gap: "5px",
+						fontSize: "0.9rem",
+					}}
+				>
 					<span className="author-icon">🐑</span>
-					{username}
+					<span style={{ fontWeight: "500" }}>{username}</span>
 				</div>
-				<div style={{ display: "flex", gap: "0.5rem", alignItems: "center" }}>
-					<span className="views">👁️ {viewCount}</span>
-					<button
-						type="button"
-						onClick={(e) => {
-							e.stopPropagation();
-							onBookmarkClick();
-						}}
+				<div style={{ display: "flex", gap: "0.7rem", alignItems: "center" }}>
+					<span
 						style={{
-							background: "none",
-							border: "none",
-							cursor: "pointer",
 							display: "flex",
 							alignItems: "center",
+							gap: "3px",
+							fontSize: "0.8rem",
+							color: "#999",
 						}}
 					>
-						<Icon
-							icon={bookmarked ? "mdi:bookmark" : "mdi:bookmark-outline"}
-							width="20"
-							height="20"
-							color={bookmarked ? "#fbbf24" : "#9ca3af"}
-						/>
-					</button>
+						👁️ {viewCount}
+					</span>
+					<span
+						style={{
+							display: "flex",
+							alignItems: "center",
+							gap: "3px",
+							fontSize: "0.8rem",
+							color: "#999",
+						}}
+					>
+						<Icon icon="mdi:comment-outline" width="16" height="16" />
+						{commentCount || 0}
+					</span>
 				</div>
 			</div>
 		</div>

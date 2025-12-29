@@ -2,11 +2,17 @@ import React, { useState, useRef, useEffect } from "react";
 import "../styles/RecruitFilterBar.css";
 
 const RecruitFilterBar = ({ options, filter, setFilter, resetFilters }) => {
-	const { types = [], positions = [], stacks = [] } = options;
-	console.log("전체 옵션 stacks 데이터:", stacks);
+	const {
+		types = [],
+		positions = [],
+		stacks = [],
+		progressTypes = [],
+	} = options;
 	const [isStackOpen, setIsStackOpen] = useState(false);
 	const [activeCategory, setActiveCategory] = useState("모두보기");
 	const dropdownRef = useRef(null);
+
+	console.log(progressTypes);
 
 	useEffect(() => {
 		const handleClickOutside = (event) => {
@@ -59,14 +65,9 @@ const RecruitFilterBar = ({ options, filter, setFilter, resetFilters }) => {
 		};
 
 		const targetCategory = categoryMap[activeCategory];
-		console.log(
-			`비교 중: 스택(${s.label})의 카테고리[${s.category}] === 찾는 카테고리[${targetCategory}]`
-		);
 		// 백엔드에서 s.category가 "FE" 등으로 오는지 확인하세요.
 		return s.category === targetCategory;
 	});
-
-	console.log("최종 필터링된 stacks:", filteredStacks);
 
 	return (
 		<div className="filter-container">
@@ -191,7 +192,33 @@ const RecruitFilterBar = ({ options, filter, setFilter, resetFilters }) => {
 					</select>
 				</div>
 
-				{/* 4. 내 북마크 / 모집중만 보기 */}
+				{/* 4. 진행 방식 드롭다운  */}
+				<div className="select-wrapper">
+					<select
+						className="select-filter"
+						value={
+							filter.progressType === null || filter.progressType === undefined
+								? ""
+								: filter.progressType
+						}
+						onChange={(e) => {
+							const val = e.target.value;
+							handleFilterChange(
+								"progressType",
+								val === "" ? null : Number(val)
+							);
+						}}
+					>
+						<option value="">진행 방식 전체</option>
+						{progressTypes.map((pt) => (
+							<option key={getValue(pt)} value={getValue(pt)}>
+								{getLabel(pt)}
+							</option>
+						))}
+					</select>
+				</div>
+
+				{/* 5. 내 북마크 / 모집중만 보기 */}
 				<div className="toggle-group">
 					<button
 						className={`toggle-chip ${filter.onlyBookmarked ? "active" : ""}`}
@@ -215,7 +242,7 @@ const RecruitFilterBar = ({ options, filter, setFilter, resetFilters }) => {
 					</button>
 				)}
 
-				{/* 5. 검색창 */}
+				{/* 6. 검색창 */}
 				<div className="search-bar">
 					<span className="search-icon">🔍</span>
 					<input
