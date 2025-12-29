@@ -3,15 +3,16 @@ import { Icon } from "@iconify/react";
 
 const RecruitCard = ({
 	recruit = {},
-	options = {}, // 🌟 부모로부터 전달받은 공통 Enum 옵션 객체
+	options = {},
 	onClick = () => {},
 	onBookmarkClick = () => {},
 }) => {
 	const {
-		type, // 이제 숫자로 들어옴 (예: 1)
-		positions = [], // 이제 숫자 배열로 들어옴 (예: [1, 2])
+		type,
+		positions = [],
 		title = "",
-		stacks = [], // 이제 숫자 배열로 들어옴 (예: [10, 11])
+		// 🌟 이제 stacks는 숫자 배열이 아니라 객체 배열입니다.
+		stacks = [],
 		username = "익명",
 		viewCount = 0,
 		status,
@@ -19,19 +20,16 @@ const RecruitCard = ({
 		bookmarked = false,
 	} = recruit;
 
-	/**
-	 * 1. 마감 여부 확인 로직 (추가됨)
-	 */
 	const today = new Date();
-	today.setHours(0, 0, 0, 0); // 시간 제외 날짜만 비교
+	today.setHours(0, 0, 0, 0);
 	const targetDate = new Date(deadLine);
 	targetDate.setHours(0, 0, 0, 0);
 
-	// 마감일이 오늘보다 이전이면 마감된 것으로 처리
 	const isExpired = deadLine && targetDate < today;
 
 	/**
 	 * 헬퍼 함수: Enum 리스트에서 value와 일치하는 label을 찾아 반환
+	 * (type이나 positions는 아직 숫자일 수 있으므로 유지합니다)
 	 */
 	const getLabel = (optionList, value) => {
 		if (!optionList || optionList.length === 0) return value;
@@ -39,17 +37,12 @@ const RecruitCard = ({
 		return found ? found.label : value;
 	};
 
-	// 날짜 포맷팅
 	const formattedDeadline = deadLine
 		? new Date(deadLine).toLocaleDateString("ko-KR")
 		: "미정";
 
-	// CSS 클래스용 (1: 스터디, 2: 프로젝트 가정)
 	const typeClass = String(type) === "1" ? "study" : "project";
 
-	/**
-	 * 2. 클릭 핸들러 (수정됨)
-	 */
 	const handleCardClick = () => {
 		if (isExpired) {
 			alert("마감된 모집글입니다.");
@@ -64,10 +57,9 @@ const RecruitCard = ({
 			onClick={handleCardClick}
 			style={{
 				cursor: isExpired ? "not-allowed" : "pointer",
-				position: "relative", // 마감 문구 배치를 위해 필요
+				position: "relative",
 			}}
 		>
-			{/* 3. 마감된 경우 나타나는 오버레이 (추가됨) */}
 			{isExpired && (
 				<div
 					style={{
@@ -105,7 +97,6 @@ const RecruitCard = ({
 						{getLabel(options.types, type)}
 					</span>
 				)}
-				{/* 모집 중 상태이고 마감이 아닐 때만 '모집 중' 표시 */}
 				{(status === "OPEN" || status === 1) && !isExpired && (
 					<span className="category-tag category-new">🔥 모집 중</span>
 				)}
@@ -118,7 +109,7 @@ const RecruitCard = ({
 				{positions.length > 0 && (
 					<div
 						className="positions"
-						style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem" }}
+						style={{ display: "flex", flexWrap: "wrap", gap: "0.4rem" }}
 					>
 						{positions.map((pos, idx) => (
 							<span key={`pos-${idx}`} className="tag position-tag">
@@ -128,6 +119,7 @@ const RecruitCard = ({
 					</div>
 				)}
 
+				{/* 🌟 스택 렌더링 부분 수정 */}
 				{stacks.length > 0 && (
 					<div
 						className="stacks"
@@ -135,13 +127,30 @@ const RecruitCard = ({
 							display: "flex",
 							flexWrap: "wrap",
 							gap: "0.5rem",
-							marginTop: "0.5rem",
+							marginTop: "0.8rem",
 						}}
 					>
 						{stacks.map((stack, idx) => (
-							<span key={`stack-${idx}`} className="tag">
-								{getLabel(options.stacks, stack)}
-							</span>
+							<div
+								key={`stack-${idx}`}
+								className="stack-badge-item"
+								style={{ display: "flex", alignItems: "center", gap: "4px" }}
+							>
+								{/* 🌟 백엔드에서 온 imageUrl이 있으면 아이콘 표시 */}
+								{stack.imageUrl && (
+									<img
+										src={stack.imageUrl}
+										alt={stack.label}
+										style={{
+											width: "16px",
+											height: "16px",
+											objectFit: "contain",
+										}}
+									/>
+								)}
+								{/* 🌟 stack 자체가 객체이므로 stack.label을 직접 출력 (에러 해결 핵심!) */}
+								{/* <span className="tag">{stack.label}</span> */}
+							</div>
 						))}
 					</div>
 				)}

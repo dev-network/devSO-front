@@ -2,7 +2,7 @@
 	margin-bottom: 2rem;
 }
 
-/* 타입 탭: 간격과 폰트 크기 조정 */
+/* 1. 타입 탭: 간격과 폰트 크기 조정 */
 .type-tabs {
 	display: flex;
 	gap: 24px;
@@ -24,11 +24,12 @@
 	border-bottom: 3px solid #212529;
 }
 
+/* 2. 필터 컨트롤 영역: 가로 정렬 최적화 */
 .filter-controls {
 	display: flex;
 	align-items: center;
 	gap: 12px;
-	flex-wrap: wrap;
+	flex-wrap: nowrap; /* 한 줄에 정렬되도록 고정 (좁을 때 wrap) */
 }
 
 /* 공통 버튼 스타일 (Chip) */
@@ -48,17 +49,23 @@
 	gap: 6px;
 	color: #495057;
 	transition: all 0.2s;
+	white-space: nowrap;
 }
 
-/* 🌟 내 북마크 / 모집중만 보기 스타일링 */
+/* 3. 내 북마크 / 모집중만 보기 (가로 정렬 보강) */
+.toggle-group {
+	display: flex;
+	flex-direction: row; /* 명시적으로 가로 방향 설정 */
+	gap: 8px;
+	align-items: center;
+	flex-shrink: 0; /* 너비가 줄어들지 않도록 방지 */
+}
+
 .toggle-chip.active {
 	border-color: #00d4b1;
 	background-color: #f0fffb;
 	color: #00d4b1;
 	font-weight: 600;
-}
-.toggle-chip .emoji {
-	font-size: 16px;
 }
 
 /* 드롭다운 카운트 뱃지 */
@@ -74,7 +81,11 @@
 	justify-content: center;
 }
 
-/* 기술 스택 패널 최적화 */
+/* 4. 기술 스택 패널 및 리스트 (아이콘 포함) */
+.dropdown-wrapper {
+	position: relative;
+}
+
 .stack-dropdown-panel {
 	position: absolute;
 	top: 52px;
@@ -87,12 +98,14 @@
 	padding: 24px;
 	z-index: 1000;
 }
+
 .stack-category-tabs {
 	display: flex;
 	gap: 16px;
 	border-bottom: 1px solid #f1f3f5;
 	margin-bottom: 20px;
 }
+
 .stack-category-tabs button {
 	padding-bottom: 10px;
 	border: none;
@@ -102,6 +115,7 @@
 	color: #adb5bd;
 	font-size: 15px;
 }
+
 .stack-category-tabs button.active {
 	color: #212529;
 	border-bottom: 2px solid #212529;
@@ -111,39 +125,67 @@
 	display: flex;
 	flex-wrap: wrap;
 	gap: 8px;
+	max-height: 300px;
+	overflow-y: auto; /* 스택이 많을 경우 스크롤 */
 }
+
 .stack-item {
 	display: flex;
 	align-items: center;
 	gap: 8px;
-	padding: 8px 16px;
+	padding: 6px 14px;
 	border-radius: 20px;
 	border: 1px solid #f1f3f5;
 	background: #fff;
 	cursor: pointer;
+	font-size: 14px;
 }
+
+/* 🌟 스택 아이콘 이미지 스타일 */
+.stack-icon-img {
+	width: 20px;
+	height: 20px;
+	object-fit: contain;
+}
+
 .stack-item.active {
 	border-color: #00d4b1;
 	background: #f0fffb;
 	color: #00d4b1;
 	font-weight: 600;
 }
-.stack-dot {
-	width: 8px;
-	height: 8px;
-	background: #dee2e6;
-	border-radius: 50%;
-}
-.stack-item.active .stack-dot {
-	background: #00d4b1;
+
+/* 5. 필터 초기화 버튼 */
+.reset-btn {
+	display: flex;
+	align-items: center;
+	gap: 4px;
+	background: none;
+	border: none;
+	color: #999;
+	font-size: 14px;
+	font-weight: 500;
+	cursor: pointer;
+	padding: 0 8px;
+	transition: color 0.2s;
+	flex-shrink: 0;
 }
 
-/* 검색창 스타일 */
+.reset-btn:hover {
+	color: #333;
+}
+
+.reset-icon {
+	font-size: 12px;
+}
+
+/* 6. 검색창 스타일 */
 .search-bar {
 	position: relative;
-	margin-left: auto;
-	width: 280px;
+	margin-left: auto; /* 우측 끝으로 밀기 */
+	min-width: 280px;
 }
+
 .search-bar input {
 	width: 100%;
 	height: 44px;
@@ -154,42 +196,15 @@
 	outline: none;
 	transition: 0.2s;
 }
+
 .search-bar input:focus {
 	border-color: #adb5bd;
 	background: #fff;
 }
+
 .search-icon {
 	position: absolute;
 	left: 18px;
-	top: 12px;
+	top: 13px;
 	color: #adb5bd;
-}
-/* 필터 컨트롤들의 전체 정렬 */
-.filter-controls {
-	display: flex;
-	align-items: center;
-	gap: 16px; /* 컨트롤 사이의 기본 간격 */
-	flex-wrap: wrap; /* 화면이 좁아지면 자연스럽게 아래로 내려가도록 설정 */
-}
-
-/* 🌟 내 북마크 / 모집중 버튼 그룹 가로 정렬 */
-.toggle-group {
-	display: flex;
-	flex-direction: row; /* 명시적으로 가로 방향 설정 */
-	gap: 8px; /* 버튼과 버튼 사이의 간격 */
-	align-items: center;
-}
-
-/* 칩 버튼 디자인 미세 조정 */
-.toggle-chip {
-	height: 40px;
-	padding: 0 16px;
-	border-radius: 20px;
-	border: 1px solid #e1e4e6;
-	background: #fff;
-	cursor: pointer;
-	white-space: nowrap; /* 텍스트가 줄바꿈되지 않도록 방지 */
-	display: flex;
-	align-items: center;
-	gap: 6px;
 }
