@@ -6,6 +6,7 @@ import {
 	getTypes,
 	getPositions,
 	getTechStacks,
+	getProgress,
 } from "../api/index.js";
 import "../styles/Recruit.css";
 import RecruitCard from "../components/RecruitCard.jsx";
@@ -24,6 +25,7 @@ const RecruitMainPage = () => {
 		search: "",
 		onlyOpen: true,
 		onlyBookmarked: false,
+		progressType: null,
 	});
 
 	// 🌟 2. Enum 옵션 데이터 상태
@@ -31,6 +33,7 @@ const RecruitMainPage = () => {
 		types: [],
 		positions: [],
 		stacks: [],
+		progressTypes: [],
 	});
 
 	/**
@@ -57,16 +60,18 @@ const RecruitMainPage = () => {
 			setLoading(true);
 			try {
 				// 병렬 호출로 로딩 속도 향상
-				const [typeRes, posRes, stackRes] = await Promise.all([
+				const [typeRes, posRes, stackRes, progressRes] = await Promise.all([
 					getTypes(),
 					getPositions(),
 					getTechStacks(),
+					getProgress(),
 				]);
 
 				setOptions({
 					types: typeRes.data || [],
 					positions: posRes.data || [],
 					stacks: stackRes.data || [],
+					progressTypes: progressRes.data || [],
 				});
 
 				// 첫 게시글 리스트 조회
