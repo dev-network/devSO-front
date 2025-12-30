@@ -43,6 +43,9 @@ const PostDetailPage = () => {
   const [commentLoading, setCommentLoading] = useState(false);
   const [commentSubmitting, setCommentSubmitting] = useState(false);
   const [commentText, setCommentText] = useState("");
+  const [replyingToId, setReplyingToId] = useState(null);
+  const [replyText, setReplyText] = useState("");
+  const [replyMentionedUserIds, setReplyMentionedUserIds] = useState([]);
   const [editingCommentId, setEditingCommentId] = useState(null);
   const [editingText, setEditingText] = useState("");
   const [commentUpdating, setCommentUpdating] = useState(false);
@@ -152,6 +155,78 @@ const PostDetailPage = () => {
     }
   };
 
+  // 답글(대댓글) 작성 시작
+  // - 댓글에 답글: parent = comment.id
+  // - 대댓글에 답글: depth는 더 늘리지 않으므로 parent = reply.parentCommentId (부모 댓글)
+  // - 멘션은 클릭한 대상(댓글/대댓글)의 작성자를 @로 프리필
+  const startReply = (target, parentIdOverride = null) => {
+    const uname = target?.author?.username || target?.author?.name || "";
+    const targetUserId = target?.author?.id ?? null;
+    const parentId = parentIdOverride ?? target?.id ?? null;
+    setReplyingToId(parentId);
+    setReplyText(uname ? `@${uname} ` : "");
+    setReplyMentionedUserIds(targetUserId ? [targetUserId] : []);
+    setEditingCommentId(null);
+  };
+
+  const cancelReply = () => {
+    setReplyingToId(null);
+    setReplyText("");
+    setReplyMentionedUserIds([]);
+  };
+
+  const handleSubmitReply = async (parentComment) => {
+    if (!isAuthenticated) {
+      Swal.fire({
+        icon: "info",
+        title: "로그인 필요",
+        text: "대댓글을 작성하려면 로그인이 필요합니다.",
+        confirmButtonText: "확인",
+      });
+      return;
+    }
+
+    const content = replyText.trim();
+    if (!content) return;
+    if (content.length > 100) {
+      Swal.fire({
+        icon: "warning",
+        title: "댓글은 100자 이하",
+        text: `현재 ${content.length}자 입니다.`,
+        confirmButtonText: "확인",
+      });
+      return;
+    }
+
+    if (commentSubmitting) return;
+
+    try {
+      setCommentSubmitting(true);
+      const res = await createComment(id, {
+        content,
+        parentCommentId: parentComment.id,
+        mentionedUserIds: replyMentionedUserIds,
+      });
+      const created = res.data?.data;
+      if (created) {
+        setComments((prev) => [...prev, created]);
+        setPost((prev) =>
+          prev ? { ...prev, commentCount: (prev.commentCount || 0) + 1 } : prev
+        );
+      }
+      cancelReply();
+    } catch (err) {
+      Swal.fire({
+        icon: "error",
+        title: "오류",
+        text: err.response?.data?.error?.message || "대댓글 작성에 실패했습니다.",
+        confirmButtonText: "확인",
+      });
+    } finally {
+      setCommentSubmitting(false);
+    }
+  };
+
   const handleDeleteComment = async (commentId) => {
     if (!isAuthenticated) return;
 
@@ -236,6 +311,21 @@ const PostDetailPage = () => {
     }
   };
 
+  const renderMentions = (text) => {
+    const s = String(text ?? "");
+    const parts = s.split(/(@[A-Za-z0-9_가-힣.-]+)/g);
+    return parts.map((p, idx) => {
+      if (/^@[A-Za-z0-9_가-힣.-]+$/.test(p)) {
+        return (
+          <span key={idx} className="mention">
+            {p}
+          </span>
+        );
+      }
+      return <span key={idx}>{p}</span>;
+    });
+  };
+
   const normalizeImageUrl = (url) => {
     if (!url) return "";
     const abs = getImageUrl(String(url).trim());
@@ -315,6 +405,24 @@ const PostDetailPage = () => {
   );
   const processedMarkdown = processMarkdown(markdownWithoutDuplicatedFirstImage);
   const isOwner = Boolean(isAuthenticated && user?.id && post?.author?.id && user.id === post.author.id);
+
+  // flat list -> (댓글, 대댓글) 2단 구조
+  const topLevelComments = comments
+    .filter((c) => !c?.parentCommentId)
+    .sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
+
+  const repliesByParentId = comments
+    .filter((c) => c?.parentCommentId)
+    .reduce((acc, c) => {
+      const pid = c.parentCommentId;
+      if (!acc[pid]) acc[pid] = [];
+      acc[pid].push(c);
+      return acc;
+    }, {});
+
+  Object.keys(repliesByParentId).forEach((pid) => {
+    repliesByParentId[pid].sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
+  });
 
   const handleDeletePost = async () => {
     if (!isOwner) return;
@@ -541,11 +649,12 @@ const PostDetailPage = () => {
             <div className="post-detail-comments-empty">첫 댓글을 남겨보세요.</div>
           ) : (
             <ul className="post-detail-comment-list">
-              {comments.map((c) => {
+              {topLevelComments.map((c) => {
                 const isCommentOwner = Boolean(
                   isAuthenticated && user?.id && c?.author?.id && user.id === c.author.id
                 );
                 const isEditing = editingCommentId === c.id;
+                const replies = repliesByParentId[c.id] || [];
                 return (
                   <li key={c.id} className="post-detail-comment-item">
                     <div className="post-detail-comment-meta">
@@ -553,47 +662,56 @@ const PostDetailPage = () => {
                         {c?.author?.name || c?.author?.username}
                       </div>
                       <div className="post-detail-comment-date">{formatKoreanDateTime(c?.createdAt)}</div>
-                      {isCommentOwner && (
-                        <div className="post-detail-comment-actions">
-                          {!isEditing ? (
-                            <>
-                              <button
-                                type="button"
-                                className="post-detail-comment-edit"
-                                onClick={() => startEditComment(c)}
-                              >
-                                수정
-                              </button>
-                              <button
-                                type="button"
-                                className="post-detail-comment-delete"
-                                onClick={() => handleDeleteComment(c.id)}
-                              >
-                                삭제
-                              </button>
-                            </>
-                          ) : (
-                            <>
-                              <button
-                                type="button"
-                                className="post-detail-comment-save"
-                                disabled={commentUpdating || !editingText.trim()}
-                                onClick={() => handleUpdateComment(c.id)}
-                              >
-                                {commentUpdating ? "저장 중..." : "저장"}
-                              </button>
-                              <button
-                                type="button"
-                                className="post-detail-comment-cancel"
-                                disabled={commentUpdating}
-                                onClick={cancelEditComment}
-                              >
-                                취소
-                              </button>
-                            </>
-                          )}
-                        </div>
-                      )}
+                      <div className="post-detail-comment-actions">
+                        {!isEditing ? (
+                          <>
+                            <button
+                              type="button"
+                              className="post-detail-comment-reply"
+                              onClick={() => startReply(c)}
+                            >
+                              답글
+                            </button>
+                            {isCommentOwner && (
+                              <>
+                                <button
+                                  type="button"
+                                  className="post-detail-comment-edit"
+                                  onClick={() => startEditComment(c)}
+                                >
+                                  수정
+                                </button>
+                                <button
+                                  type="button"
+                                  className="post-detail-comment-delete"
+                                  onClick={() => handleDeleteComment(c.id)}
+                                >
+                                  삭제
+                                </button>
+                              </>
+                            )}
+                          </>
+                        ) : (
+                          <>
+                            <button
+                              type="button"
+                              className="post-detail-comment-save"
+                              disabled={commentUpdating || !editingText.trim()}
+                              onClick={() => handleUpdateComment(c.id)}
+                            >
+                              {commentUpdating ? "저장 중..." : "저장"}
+                            </button>
+                            <button
+                              type="button"
+                              className="post-detail-comment-cancel"
+                              disabled={commentUpdating}
+                              onClick={cancelEditComment}
+                            >
+                              취소
+                            </button>
+                          </>
+                        )}
+                      </div>
                     </div>
                     {isEditing ? (
                       <div className="post-detail-comment-editbox">
@@ -606,7 +724,124 @@ const PostDetailPage = () => {
                         <div className="post-detail-comment-edit-hint">{editingText.trim().length}/100</div>
                       </div>
                     ) : (
-                      <div className="post-detail-comment-content">{c?.content}</div>
+                      <div className="post-detail-comment-content">{renderMentions(c?.content)}</div>
+                    )}
+
+                    {/* Reply box (depth 2 only) */}
+                    {replyingToId === c.id && (
+                      <div className="post-detail-reply-form">
+                        <textarea
+                          value={replyText}
+                          onChange={(e) => setReplyText(e.target.value)}
+                          placeholder="대댓글을 입력하세요. (최대 100자)"
+                          disabled={!isAuthenticated || commentSubmitting}
+                          maxLength={110}
+                        />
+                        <div className="post-detail-reply-form-actions">
+                          <div className="post-detail-comment-form-hint">{replyText.trim().length}/100</div>
+                          <div className="post-detail-reply-buttons">
+                            <button
+                              type="button"
+                              className="post-detail-reply-cancel"
+                              onClick={cancelReply}
+                              disabled={commentSubmitting}
+                            >
+                              취소
+                            </button>
+                            <button
+                              type="button"
+                              className="post-detail-reply-submit"
+                              onClick={() => handleSubmitReply(c)}
+                              disabled={!isAuthenticated || commentSubmitting || !replyText.trim()}
+                            >
+                              {commentSubmitting ? "등록 중..." : "등록"}
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Replies */}
+                    {replies.length > 0 && (
+                      <ul className="post-detail-reply-list">
+                        {replies.map((r) => {
+                          const isReplyOwner = Boolean(
+                            isAuthenticated && user?.id && r?.author?.id && user.id === r.author.id
+                          );
+                          const isReplyEditing = editingCommentId === r.id;
+                          return (
+                            <li key={r.id} className="post-detail-reply-item">
+                              <div className="post-detail-comment-meta">
+                                <div className="post-detail-comment-author">
+                                  {r?.author?.name || r?.author?.username}
+                                </div>
+                                <div className="post-detail-comment-date">{formatKoreanDateTime(r?.createdAt)}</div>
+                                <div className="post-detail-comment-actions">
+                                  <button
+                                    type="button"
+                                    className="post-detail-comment-reply"
+                                    onClick={() => startReply(r, r.parentCommentId)}
+                                  >
+                                    답글
+                                  </button>
+                                  {isReplyOwner && !isReplyEditing && (
+                                    <>
+                                      <button
+                                        type="button"
+                                        className="post-detail-comment-edit"
+                                        onClick={() => startEditComment(r)}
+                                      >
+                                        수정
+                                      </button>
+                                      <button
+                                        type="button"
+                                        className="post-detail-comment-delete"
+                                        onClick={() => handleDeleteComment(r.id)}
+                                      >
+                                        삭제
+                                      </button>
+                                    </>
+                                  )}
+                                  {isReplyOwner && isReplyEditing && (
+                                    <>
+                                      <button
+                                        type="button"
+                                        className="post-detail-comment-save"
+                                        disabled={commentUpdating || !editingText.trim()}
+                                        onClick={() => handleUpdateComment(r.id)}
+                                      >
+                                        {commentUpdating ? "저장 중..." : "저장"}
+                                      </button>
+                                      <button
+                                        type="button"
+                                        className="post-detail-comment-cancel"
+                                        disabled={commentUpdating}
+                                        onClick={cancelEditComment}
+                                      >
+                                        취소
+                                      </button>
+                                    </>
+                                  )}
+                                </div>
+                              </div>
+
+                              {isReplyEditing ? (
+                                <div className="post-detail-comment-editbox">
+                                  <textarea
+                                    value={editingText}
+                                    onChange={(e) => setEditingText(e.target.value)}
+                                    maxLength={110}
+                                    disabled={commentUpdating}
+                                  />
+                                  <div className="post-detail-comment-edit-hint">{editingText.trim().length}/100</div>
+                                </div>
+                              ) : (
+                                <div className="post-detail-comment-content">{renderMentions(r?.content)}</div>
+                              )}
+                            </li>
+                          );
+                        })}
+                      </ul>
                     )}
                   </li>
                 );
