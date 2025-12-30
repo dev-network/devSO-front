@@ -17,10 +17,12 @@ import {
 	updateRecruitComment,
 	deleteRecruitComment,
 	getImageUrl,
+	getAiChecklist,
 } from "../api";
 import { useAuth } from "../contexts/AuthContext";
 import { Icon } from "@iconify/react";
 import { Avatar } from "@mui/material";
+import "../styles/AiChecklistModal.css";
 
 import "react-quill-new/dist/quill.snow.css";
 
@@ -35,6 +37,11 @@ export default function RecruitDetailPage() {
 	const [editingCommentId, setEditingCommentId] = useState(null);
 	const [editInput, setEditInput] = useState("");
 	const [replyTo, setReplyTo] = useState(null);
+
+	// AI 자가진단 관련 상태
+	const [aiData, setAiData] = useState(null);
+	const [isAiLoading, setIsAiLoading] = useState(false);
+	const [isAiModalOpen, setIsAiModalOpen] = useState(false);
 
 	const [options, setOptions] = useState({
 		types: [],
@@ -80,6 +87,27 @@ export default function RecruitDetailPage() {
 		if (id) fetchData();
 	}, [id]);
 
+	const handleAiChecklist = async () => {
+		if (!user) {
+			alert("로그인이 필요한 서비스입니다.");
+			return;
+		}
+		setIsAiModalOpen(true);
+		setIsAiLoading(true);
+		try {
+			const res = await getAiChecklist(id);
+			const data =
+				typeof res.data === "string" ? JSON.parse(res.data) : res.data;
+			setAiData(data);
+		} catch (err) {
+			console.error("AI 자가진단 실패", err);
+			alert("AI 분석 정보를 가져오지 못했습니다.");
+			setIsAiModalOpen(false);
+		} finally {
+			setIsAiLoading(false);
+		}
+	};
+
 	const getLabel = (optionList, serverValue) => {
 		if (
 			!optionList ||
@@ -110,7 +138,6 @@ export default function RecruitDetailPage() {
 		});
 	};
 
-	// 🌟 댓글 등록 (등록 후 전체 데이터를 다시 불러와서 카운트와 목록을 갱신합니다)
 	const handleCommentSubmit = async () => {
 		if (!commentInput.trim()) return;
 		try {
@@ -120,13 +147,12 @@ export default function RecruitDetailPage() {
 			});
 			setCommentInput("");
 			setReplyTo(null);
-			await fetchData(); // 게시글 상세정보(카운트 포함)와 댓글목록 갱신
+			await fetchData();
 		} catch (err) {
 			alert("댓글 등록에 실패했습니다.");
 		}
 	};
 
-	// 🌟 댓글 삭제 (A안: 부모 삭제 시 자식까지 삭제되므로 새로고침이 가장 정확합니다)
 	const handleCommentDelete = async (commentId) => {
 		if (
 			!window.confirm(
@@ -136,7 +162,7 @@ export default function RecruitDetailPage() {
 			return;
 		try {
 			await deleteRecruitComment(id, commentId);
-			await fetchData(); // Soft Delete된 후 카운트가 줄어든 데이터를 새로 가져옴
+			await fetchData();
 		} catch (err) {
 			alert("댓글 삭제에 실패했습니다.");
 		}
@@ -278,27 +304,36 @@ export default function RecruitDetailPage() {
 							</span>
 						</div>
 					</div>
-					{isOwner && (
-						<div className="flex gap-2">
-							<button onClick={handleUpdate} className="detail-action-btn">
-								수정
-							</button>
-							<button
-								onClick={handleDelete}
-								className="detail-action-btn hover:text-red-500"
-							>
-								삭제
-							</button>
-							<button
-								onClick={handleToggleStatus}
-								className="detail-action-btn text-blue-600 bg-blue-50 border-blue-100"
-							>
-								{recruit.status === "OPEN" || recruit.status === 1
-									? "마감하기"
-									: "마감취소"}
-							</button>
-						</div>
-					)}
+
+					<div className="flex gap-2">
+						{/* 🌟 AI 버튼을 isOwner 체크 밖으로 이동했습니다. 이제 누구나 보입니다. */}
+						<button onClick={handleAiChecklist} className="ai-analysis-btn">
+							<Icon icon="hugeicons:ai-cloud" width="16" />
+							<span>AI 자가진단</span>
+						</button>
+
+						{isOwner && (
+							<>
+								<button onClick={handleUpdate} className="detail-action-btn">
+									수정
+								</button>
+								<button
+									onClick={handleDelete}
+									className="detail-action-btn hover:text-red-500"
+								>
+									삭제
+								</button>
+								<button
+									onClick={handleToggleStatus}
+									className="detail-action-btn text-blue-600 bg-blue-50 border-blue-100"
+								>
+									{recruit.status === "OPEN" || recruit.status === 1
+										? "마감하기"
+										: "마감취소"}
+								</button>
+							</>
+						)}
+					</div>
 				</div>
 			</header>
 
@@ -382,7 +417,6 @@ export default function RecruitDetailPage() {
 						{recruit.commentCount || 0}
 					</span>
 				</h3>
-
 				<div className="bg-gray-50 p-5 rounded-2xl flex flex-col gap-3 border border-gray-100 shadow-sm mb-10">
 					{replyTo && (
 						<div className="flex justify-between items-center px-3 py-1.5 bg-blue-50 rounded-lg text-xs font-bold text-blue-600">
@@ -429,7 +463,6 @@ export default function RecruitDetailPage() {
 				</div>
 
 				<div className="space-y-8">
-					{/* 🌟 parentId가 없는 최상위 댓글만 map을 돌립니다. (백엔드 로직과 맞춤) */}
 					{comments
 						.filter((c) => !c.parentId)
 						.map((comment) => (
@@ -513,8 +546,6 @@ export default function RecruitDetailPage() {
 										)}
 									</div>
 								</div>
-
-								{/* 대댓글(자식) 렌더링 */}
 								{comment.children?.map((child) => (
 									<div
 										key={child.id}
@@ -568,11 +599,73 @@ export default function RecruitDetailPage() {
 				</div>
 			</section>
 
+			{/* AI 자가진단 모달 */}
+			{isAiModalOpen && (
+				<div
+					className="ai-modal-overlay"
+					onClick={() => setIsAiModalOpen(false)}
+				>
+					<div
+						className="ai-modal-container"
+						onClick={(e) => e.stopPropagation()}
+					>
+						<button
+							className="close-x-btn"
+							onClick={() => setIsAiModalOpen(false)}
+						>
+							&times;
+						</button>
+						<div className="ai-modal-header">
+							<h2 className="flex items-center gap-2">
+								<Icon icon="hugeicons:ai-cloud" className="text-indigo-600" />{" "}
+								AI 자가진단
+							</h2>
+						</div>
+						{isAiLoading ? (
+							<div className="ai-modal-loading">
+								<div className="ai-spinner"></div>
+								<p className="text-gray-500 text-sm">
+									Gemini 2.0이 분석 중입니다...
+								</p>
+							</div>
+						) : (
+							<div className="ai-modal-content" style={{ marginTop: "20px" }}>
+								<div
+									className="ai-check-list"
+									style={{ maxHeight: "350px", overflowY: "auto" }}
+								>
+									{aiData?.checkList?.map((item, idx) => (
+										<div key={idx} className="ai-check-item">
+											<input type="checkbox" style={{ marginTop: "4px" }} />
+											<div className="ai-info">
+												<span className="ai-tag">#{item.target}</span>
+												<div className="ai-question">{item.question}</div>
+											</div>
+										</div>
+									))}
+								</div>
+								<div className="ai-match-tip">
+									<strong>💡 AI 조언</strong>
+									<p>{aiData?.matchTip}</p>
+								</div>
+								<button
+									className="ai-done-btn"
+									onClick={() => setIsAiModalOpen(false)}
+								>
+									확인 완료
+								</button>
+							</div>
+						)}
+					</div>
+				</div>
+			)}
+
 			<style>{`
         .detail-action-btn {
           padding: 6px 14px; font-size: 13px; font-weight: 700;
           background-color: #f9fafb; border: 1px solid #e5e7eb;
           border-radius: 6px; color: #6b7280; transition: all 0.2s;
+          cursor: pointer;
         }
         .detail-action-btn:hover { background-color: #ffffff; color: #111827; border-color: #d1d5db; }
       `}</style>
@@ -580,7 +673,7 @@ export default function RecruitDetailPage() {
 	);
 }
 
-function InfoItem({ label, value, isBadge, isStack }) {
+function InfoItem({ label, value, isStack }) {
 	if (isStack && Array.isArray(value)) {
 		return (
 			<div className="flex items-start text-[15px]">
@@ -612,20 +705,7 @@ function InfoItem({ label, value, isBadge, isStack }) {
 	return (
 		<div className="flex items-start text-[15px]">
 			<span className="w-24 text-gray-400 shrink-0 font-medium">{label}</span>
-			<div className="flex flex-wrap gap-2">
-				{isBadge && Array.isArray(value) ? (
-					value.map((v, idx) => (
-						<span
-							key={idx}
-							className="bg-gray-100 text-gray-600 px-2.5 py-1 rounded text-xs font-bold uppercase tracking-wide"
-						>
-							{v}
-						</span>
-					))
-				) : (
-					<span className="text-gray-800 font-semibold">{displayValue}</span>
-				)}
-			</div>
+			<span className="text-gray-800 font-semibold">{displayValue}</span>
 		</div>
 	);
 }
