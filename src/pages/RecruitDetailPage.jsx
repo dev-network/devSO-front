@@ -437,6 +437,7 @@ export default function RecruitDetailPage() {
 								<div className="flex gap-4 group">
 									<Avatar
 										src={getImageUrl(comment.author?.profileImageUrl)}
+										onClick={() => handleProfileClick(comment.author?.username)}
 										sx={{
 											width: 40,
 											height: 40,
@@ -522,6 +523,9 @@ export default function RecruitDetailPage() {
 										<div className="flex gap-3">
 											<Avatar
 												src={getImageUrl(child.author?.profileImageUrl)}
+												onClick={() =>
+													handleProfileClick(child.author?.username)
+												}
 												sx={{
 													width: 32,
 													height: 32,
