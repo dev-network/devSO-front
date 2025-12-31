@@ -328,7 +328,7 @@ const PostDetailPage = () => {
 
   const renderAuthor = (author) => {
     const username = author?.username;
-    const label = username ? `@${username}` : author?.name || "";
+    const label = username ? `${username}` : author?.name || "";
     const avatarSrc = author?.profileImageUrl
       ? getImageUrl(author.profileImageUrl)
       : "https://cdn-icons-png.flaticon.com/512/149/149071.png";
