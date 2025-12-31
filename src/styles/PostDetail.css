@@ -67,12 +67,38 @@
   align-items: center;
   gap: 12px;
   color: #6b7280;
-  font-size: 14px;
+  font-size: 15px;
+}
+
+.post-detail-author-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.post-detail-author-link.disabled {
+  cursor: default;
+  opacity: 0.9;
+}
+
+.post-detail-author-avatar {
+  width: 132px; /* 3배 */
+  height: 132px; /* 3배 */
+  border-radius: 999px;
+  object-fit: cover;
+  border: 1px solid #e5e7eb;
+  background: #f3f4f6;
 }
 
 .post-detail-author-name {
   font-weight: 600;
   color: #374151;
+  font-size: 36px; /* 2배 */
 }
 
 .post-detail-date {
@@ -361,7 +387,7 @@
 .post-detail-comment-item {
   border: 1px solid #e5e7eb;
   border-radius: 12px;
-  padding: 12px 14px;
+  padding: 18px 20px;
   background: #fff;
 }
 
@@ -378,8 +404,36 @@
   font-size: 13px;
 }
 
+.post-detail-comment-author-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  text-decoration: none;
+  color: inherit;
+}
+
+.post-detail-comment-author-link.disabled {
+  cursor: default;
+  opacity: 0.9;
+}
+
+.post-detail-comment-author-avatar {
+  width: 46px;
+  height: 46px;
+  border-radius: 999px;
+  object-fit: cover;
+  border: 1px solid #e5e7eb;
+  background: #f3f4f6;
+}
+
+.post-detail-comment-author-text {
+  font-weight: 700;
+  color: #111;
+  font-size: 20px;
+}
+
 .post-detail-comment-date {
-  font-size: 12px;
+  font-size: 13px;
   color: #9ca3af;
 }
 
@@ -469,9 +523,9 @@
 }
 
 .post-detail-comment-content {
-  font-size: 14px;
+  font-size: 18px;
   color: #374151;
-  line-height: 1.6;
+  line-height: 1.8;
   white-space: pre-wrap;
 }
 
@@ -493,8 +547,8 @@
   padding: 10px 12px;
   border: 1px solid #e5e7eb;
   border-radius: 10px;
-  font-size: 14px;
-  line-height: 1.5;
+  font-size: 16px;
+  line-height: 1.6;
 }
 
 .post-detail-reply-form-actions {
@@ -544,13 +598,19 @@
   margin: 10px 0 0 0;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 16px; /* 대댓글들 사이 간격 */
 }
 
 .post-detail-reply-item {
   margin-left: 18px;
-  padding-left: 14px;
-  border-left: 2px solid #e5e7eb;
+  padding-left: 16px;
+  border-left: 3px solid #d1d5db;
+}
+
+/* 대댓글 본문 텍스트는 본댓글보다 더 크게 */
+.post-detail-reply-item .post-detail-comment-content {
+  font-size: 18px;
+  line-height: 1.8;
 }
 
 .post-detail-comments-loading,
@@ -581,6 +641,16 @@
   .post-detail-meta {
     flex-direction: column;
     align-items: flex-start;
+  }
+
+  /* 모바일에서는 너무 커지지 않게 조정 */
+  .post-detail-author-avatar {
+    width: 84px;
+    height: 84px;
+  }
+
+  .post-detail-author-name {
+    font-size: 26px;
   }
 
   .post-detail-content h1 {

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, Link } from "react-router-dom";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import {
@@ -326,6 +326,30 @@ const PostDetailPage = () => {
     });
   };
 
+  const renderAuthor = (author) => {
+    const username = author?.username;
+    const label = username ? `@${username}` : author?.name || "";
+    const avatarSrc = author?.profileImageUrl
+      ? getImageUrl(author.profileImageUrl)
+      : "https://cdn-icons-png.flaticon.com/512/149/149071.png";
+
+    if (username) {
+      return (
+        <Link className="post-detail-comment-author-link" to={`/profile/${username}`}>
+          <img className="post-detail-comment-author-avatar" src={avatarSrc} alt="author avatar" />
+          <span className="post-detail-comment-author-text">{label}</span>
+        </Link>
+      );
+    }
+
+    return (
+      <span className="post-detail-comment-author-link disabled">
+        <img className="post-detail-comment-author-avatar" src={avatarSrc} alt="author avatar" />
+        <span className="post-detail-comment-author-text">{label}</span>
+      </span>
+    );
+  };
+
   const normalizeImageUrl = (url) => {
     if (!url) return "";
     const abs = getImageUrl(String(url).trim());
@@ -524,9 +548,41 @@ const PostDetailPage = () => {
           <h1 className="post-detail-title">{post.title}</h1>
           <div className="post-detail-meta">
             <div className="post-detail-author">
-              <span className="post-detail-author-name">
-                {post.author?.name || post.author?.username}
-              </span>
+              {post.author?.username ? (
+                <Link
+                  className="post-detail-author-link"
+                  to={`/profile/${post.author.username}`}
+                  aria-label="작성자 프로필로 이동"
+                >
+                  <img
+                    className="post-detail-author-avatar"
+                    src={
+                      post.author?.profileImageUrl
+                        ? getImageUrl(post.author.profileImageUrl)
+                        : "https://cdn-icons-png.flaticon.com/512/149/149071.png"
+                    }
+                    alt="author avatar"
+                  />
+                  <span className="post-detail-author-name">
+                    {post.author?.name || post.author?.username}
+                  </span>
+                </Link>
+              ) : (
+                <span className="post-detail-author-link disabled" aria-label="작성자">
+                  <img
+                    className="post-detail-author-avatar"
+                    src={
+                      post.author?.profileImageUrl
+                        ? getImageUrl(post.author.profileImageUrl)
+                        : "https://cdn-icons-png.flaticon.com/512/149/149071.png"
+                    }
+                    alt="author avatar"
+                  />
+                  <span className="post-detail-author-name">
+                    {post.author?.name || post.author?.username}
+                  </span>
+                </span>
+              )}
               <span className="post-detail-date">
                 {new Date(post.createdAt).toLocaleDateString("ko-KR", {
                   year: "numeric",
@@ -658,9 +714,7 @@ const PostDetailPage = () => {
                 return (
                   <li key={c.id} className="post-detail-comment-item">
                     <div className="post-detail-comment-meta">
-                      <div className="post-detail-comment-author">
-                        {c?.author?.name || c?.author?.username}
-                      </div>
+                      <div className="post-detail-comment-author">{renderAuthor(c?.author)}</div>
                       <div className="post-detail-comment-date">{formatKoreanDateTime(c?.createdAt)}</div>
                       <div className="post-detail-comment-actions">
                         {!isEditing ? (
@@ -772,9 +826,7 @@ const PostDetailPage = () => {
                           return (
                             <li key={r.id} className="post-detail-reply-item">
                               <div className="post-detail-comment-meta">
-                                <div className="post-detail-comment-author">
-                                  {r?.author?.name || r?.author?.username}
-                                </div>
+                                <div className="post-detail-comment-author">{renderAuthor(r?.author)}</div>
                                 <div className="post-detail-comment-date">{formatKoreanDateTime(r?.createdAt)}</div>
                                 <div className="post-detail-comment-actions">
                                   <button
