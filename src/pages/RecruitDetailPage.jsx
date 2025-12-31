@@ -18,12 +18,13 @@ import {
 	deleteRecruitComment,
 	getImageUrl,
 	getAiChecklist,
+	calculateAiScore,
 } from "../api";
 import { useAuth } from "../contexts/AuthContext";
 import { Icon } from "@iconify/react";
 import { Avatar } from "@mui/material";
+import AiChecklistModal from "../components/AiChecklistModal";
 import "../styles/AiChecklistModal.css";
-
 import "react-quill-new/dist/quill.snow.css";
 
 export default function RecruitDetailPage() {
@@ -42,6 +43,26 @@ export default function RecruitDetailPage() {
 	const [aiData, setAiData] = useState(null);
 	const [isAiLoading, setIsAiLoading] = useState(false);
 	const [isAiModalOpen, setIsAiModalOpen] = useState(false);
+
+	// AI 점수 계산 핸들러 추가
+	const handleCalculateAiScore = async (checkedQuestions) => {
+		try {
+			const res = await calculateAiScore(id, checkedQuestions);
+			const rawData = res.data.data;
+
+			// 서버에서 온 JSON 문자열을 객체로 변환
+			const parsedData =
+				typeof rawData === "string" ? JSON.parse(rawData) : rawData;
+
+			// 중요: 부모의 aiData를 업데이트하여 모달이 점수를 인지하게 함
+			setAiData(parsedData);
+
+			return parsedData.score; // 점수 반환
+		} catch (err) {
+			console.error("점수 계산 실패", err);
+			throw err;
+		}
+	};
 
 	const [options, setOptions] = useState({
 		types: [],
@@ -87,21 +108,28 @@ export default function RecruitDetailPage() {
 		if (id) fetchData();
 	}, [id]);
 
-	const handleAiChecklist = async () => {
+	const handleAiChecklist = async (refresh = false) => {
 		if (!user) {
 			alert("로그인이 필요한 서비스입니다.");
 			return;
 		}
+
 		setIsAiModalOpen(true);
 		setIsAiLoading(true);
+
 		try {
-			const res = await getAiChecklist(id);
-			const data =
-				typeof res.data === "string" ? JSON.parse(res.data) : res.data;
-			setAiData(data);
+			const res = await getAiChecklist(id, refresh);
+			const rawData = res.data.data;
+			const parsedData =
+				typeof rawData === "string" ? JSON.parse(rawData) : rawData;
+
+			setAiData(parsedData);
 		} catch (err) {
 			console.error("AI 자가진단 실패", err);
-			alert("AI 분석 정보를 가져오지 못했습니다.");
+			const errMsg =
+				err.response?.data?.error?.message ||
+				"AI 분석 정보를 가져오지 못했습니다.";
+			alert(errMsg);
 			setIsAiModalOpen(false);
 		} finally {
 			setIsAiLoading(false);
@@ -306,8 +334,10 @@ export default function RecruitDetailPage() {
 					</div>
 
 					<div className="flex gap-2">
-						{/* 🌟 AI 버튼을 isOwner 체크 밖으로 이동했습니다. 이제 누구나 보입니다. */}
-						<button onClick={handleAiChecklist} className="ai-analysis-btn">
+						<button
+							onClick={() => handleAiChecklist(false)}
+							className="ai-analysis-btn"
+						>
 							<Icon icon="hugeicons:ai-cloud" width="16" />
 							<span>AI 자가진단</span>
 						</button>
@@ -600,65 +630,14 @@ export default function RecruitDetailPage() {
 			</section>
 
 			{/* AI 자가진단 모달 */}
-			{isAiModalOpen && (
-				<div
-					className="ai-modal-overlay"
-					onClick={() => setIsAiModalOpen(false)}
-				>
-					<div
-						className="ai-modal-container"
-						onClick={(e) => e.stopPropagation()}
-					>
-						<button
-							className="close-x-btn"
-							onClick={() => setIsAiModalOpen(false)}
-						>
-							&times;
-						</button>
-						<div className="ai-modal-header">
-							<h2 className="flex items-center gap-2">
-								<Icon icon="hugeicons:ai-cloud" className="text-indigo-600" />{" "}
-								AI 자가진단
-							</h2>
-						</div>
-						{isAiLoading ? (
-							<div className="ai-modal-loading">
-								<div className="ai-spinner"></div>
-								<p className="text-gray-500 text-sm">
-									Gemini 2.0이 분석 중입니다...
-								</p>
-							</div>
-						) : (
-							<div className="ai-modal-content" style={{ marginTop: "20px" }}>
-								<div
-									className="ai-check-list"
-									style={{ maxHeight: "350px", overflowY: "auto" }}
-								>
-									{aiData?.checkList?.map((item, idx) => (
-										<div key={idx} className="ai-check-item">
-											<input type="checkbox" style={{ marginTop: "4px" }} />
-											<div className="ai-info">
-												<span className="ai-tag">#{item.target}</span>
-												<div className="ai-question">{item.question}</div>
-											</div>
-										</div>
-									))}
-								</div>
-								<div className="ai-match-tip">
-									<strong>💡 AI 조언</strong>
-									<p>{aiData?.matchTip}</p>
-								</div>
-								<button
-									className="ai-done-btn"
-									onClick={() => setIsAiModalOpen(false)}
-								>
-									확인 완료
-								</button>
-							</div>
-						)}
-					</div>
-				</div>
-			)}
+			<AiChecklistModal
+				isOpen={isAiModalOpen}
+				onClose={() => setIsAiModalOpen(false)}
+				data={aiData}
+				isLoading={isAiLoading}
+				onRefresh={() => handleAiChecklist(true)}
+				onCalculate={handleCalculateAiScore}
+			/>
 
 			<style>{`
         .detail-action-btn {
@@ -668,6 +647,13 @@ export default function RecruitDetailPage() {
           cursor: pointer;
         }
         .detail-action-btn:hover { background-color: #ffffff; color: #111827; border-color: #d1d5db; }
+				.ai-analysis-btn {
+          display: flex; align-items: center; gap: 6px;
+          padding: 6px 14px; background: #eeefff; color: #4f46e5;
+          border-radius: 8px; font-weight: 700; font-size: 13px;
+          transition: all 0.2s;
+        }
+        .ai-analysis-btn:hover { background: #e0e2ff; transform: translateY(-1px); }
       `}</style>
 		</div>
 	);

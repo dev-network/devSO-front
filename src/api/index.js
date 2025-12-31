@@ -168,8 +168,10 @@ export const updateRecruitComment = (recruitId, commentId, data) => {
 export const deleteRecruitComment = (recruitId, commentId) => {
 	return api.delete(`/api/recruits/${recruitId}/comments/${commentId}`);
 };
-export const getAiChecklist = (recruitId) =>
-	api.get(`api/recruits/${recruitId}/ai-checklist`);
+export const getAiChecklist = (recruitId, refresh = false) =>
+	api.get(`api/recruits/${recruitId}/ai-checklist?refresh=${refresh}`);
+export const calculateAiScore = (recruitId, checkedQuestions) =>
+	api.post(`api/recruits/${recruitId}/ai-checklist/score`, checkedQuestions);
 // enum
 export const getPositions = () => api.get("/api/recruits/enum/position");
 export const getTypes = () => api.get("/api/recruits/enum/type");
