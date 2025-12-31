@@ -8,7 +8,7 @@
 
 /* Auth.css의 `.auth-form input { font-size: 14px; }` 보다 우선되게 specificity를 높임 */
 .post-create-page .auth-form input.post-title-input {
-  font-size: 56px;
+  font-size: 40px;
   font-weight: 800;
   padding: 16px 18px;
   height: 86px;
