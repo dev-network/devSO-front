@@ -19,6 +19,7 @@ const ProfileForm = ({ initialData = {}, onDataChange }) => {
     image: "",
     email: "",
     phone: "",
+    bio: "", // bio 에러 추가
   });
   const [previewUrl, setPreviewUrl] = useState(null);
   const fileInputRef = useRef(null);
@@ -66,6 +67,13 @@ const ProfileForm = ({ initialData = {}, onDataChange }) => {
       const phoneRegex = /^01[016789]-\d{3,4}-\d{4}$/;
       if (!phoneRegex.test(value)) {
         errorMsg = "형식(010-0000-0000)을 확인해주세요.";
+      }
+    }
+
+    // 4. 자기소개 글자수 검증 (500자 제한)
+    if (name === "bio") {
+      if (value.length > 500) {
+        errorMsg = "글자수는 500자를 넘을 수 없습니다.";
       }
     }
 
@@ -230,16 +238,30 @@ const ProfileForm = ({ initialData = {}, onDataChange }) => {
         </div>
 
         <div className="space-y-1">
-          <label className="block text-sm font-semibold text-gray-700">
-            자기 소개
-          </label>
+          <div className="flex justify-between items-center">
+            <label className="block text-sm font-semibold text-gray-700">
+              자기 소개
+            </label>
+            {/* 글자수 카운터 표시 */}
+            <span className={`text-[10px] font-bold ${formData.bio.length > 500 ? "text-red-500" : "text-gray-400"}`}>
+              {formData.bio.length} / 500
+            </span>
+          </div>
           <textarea
             name="bio"
             value={formData.bio}
             onChange={handleInputChange}
             rows="5"
-            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#6c5ce7] focus:border-transparent outline-none transition-colors resize-none"
+            placeholder="자신을 자유롭게 소개해 주세요."
+            className={`w-full px-4 py-3 border rounded-lg focus:ring-2 outline-none transition-colors resize-none ${
+              errors.bio
+                ? "border-red-500 focus:ring-red-200"
+                : "border-gray-300 focus:ring-[#6c5ce7] focus:border-transparent"
+            }`}
           />
+          {errors.bio && (
+            <p className="text-red-500 text-xs font-semibold mt-1">{errors.bio}</p>
+          )}
         </div>
       </div>
     </div>

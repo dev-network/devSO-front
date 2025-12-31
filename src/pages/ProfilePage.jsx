@@ -14,6 +14,7 @@ const ProfilePage = () => {
   const [profileData, setProfileData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [followLoading, setFollowLoading] = useState(false);
+  const [isBioExpanded, setIsBioExpanded] = useState(false); // 소개글 펼침 상태
   const [modalConfig, setModalConfig] = useState({
     isOpen: false,
     type: "followers",
@@ -124,8 +125,6 @@ const ProfilePage = () => {
         <div className="flex-grow text-center md:text-left z-10">
           <div className="flex flex-col md:flex-row md:items-end gap-3 mb-2">
             <h1 className="text-4xl font-black">{profileData.name || profileData.username}</h1>
-            
-            {/* 🔗 포트폴리오 및 이메일 섹션 */}
             <div className="flex flex-wrap justify-center md:justify-start gap-2 mb-1">
               {profileData.email && (
                 <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-white/20 rounded-full text-xs font-bold backdrop-blur-sm transition-all">
@@ -176,9 +175,18 @@ const ProfilePage = () => {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-1 space-y-8">
-          <section className="bg-white rounded-2xl shadow-sm border border-gray-100 p-7">
-            <h2 className="text-lg font-black mb-4">📝 소개</h2>
-            <p className="text-gray-600 text-sm italic whitespace-pre-wrap">{profileData.bio || "아직 소개글이 없습니다."}</p>
+          {/* --- 소개 섹션 (더 보기 기능 추가) --- */}
+          <section 
+            className="bg-white rounded-2xl shadow-sm border border-gray-100 p-7 cursor-pointer hover:border-indigo-200 transition-all"
+            onClick={() => setIsBioExpanded(!isBioExpanded)}
+          >
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-lg font-black">📝 소개</h2>
+              <span className="text-[10px] text-indigo-400 font-bold">{isBioExpanded ? "접기" : "더 보기"}</span>
+            </div>
+            <p className={`text-gray-600 text-sm italic whitespace-pre-wrap break-all leading-relaxed ${!isBioExpanded ? "line-clamp-3" : ""}`}>
+              {profileData.bio || "아직 소개글이 없습니다."}
+            </p>
           </section>
 
           <section className="bg-white rounded-2xl shadow-sm border border-gray-100 p-7">
