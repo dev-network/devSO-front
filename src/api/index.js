@@ -193,6 +193,6 @@ export const generateAiBio = (username) =>
 
 // email verification
 export const checkEmailDuplicate = (email) => {
-  return axios.get(`/api/users/check-email?email=${email}`);
+  return api.get(`/api/users/check-email?email=${email}`);
 };
 export default api;
