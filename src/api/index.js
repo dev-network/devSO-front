@@ -125,6 +125,8 @@ export const getFeed = (page = 0, size = 10) =>
 	api.get(`/api/feed?page=${page}&size=${size}`);
 export const getExplore = (page = 0, size = 10) =>
 	api.get(`/api/explore?page=${page}&size=${size}`);
+export const getTrending = (page = 0, size = 10) =>
+	api.get(`/api/posts/trending?page=${page}&size=${size}`);
 
 // 파일 업로드
 export const uploadFile = (file) => {
