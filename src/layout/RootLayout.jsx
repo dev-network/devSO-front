@@ -43,6 +43,14 @@ export default function RootLayout() {
 				<NavLink to="/posts" style={navLinkStyle}>
 					최신
 				</NavLink>
+				<NavLink to="/trending" style={navLinkStyle}>
+					트렌딩
+				</NavLink>
+				{isAuthenticated && (
+					<NavLink to="/feed" style={navLinkStyle}>
+						피드
+					</NavLink>
+				)}
 				<NavLink to="/recruits" style={navLinkStyle}>
 					팀원 모집
 				</NavLink>

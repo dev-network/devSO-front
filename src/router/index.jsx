@@ -6,6 +6,8 @@ import KakaoCallback from "../pages/KakaoCallback.jsx";
 import PostCreatePage from "../pages/PostCreatePage.jsx";
 import RecentPostListPage from "../pages/RecentPostListPage.jsx";
 import PostDetailPage from "../pages/PostDetailPage.jsx";
+import FeedPage from "../pages/FeedPage.jsx";
+import TrendingPage from "../pages/TrendingPage.jsx";
 import ChatListPage from "../pages/ChatListPage.jsx";
 import ChatRoomPage from "../pages/ChatRoomPage.jsx";
 import ProfileEditPage from "../pages/ProfileEditPage.jsx";
@@ -38,10 +40,22 @@ const router = createBrowserRouter([
 				element: <RecentPostListPage />,
 			},
 			{
+				path: "trending",
+				element: <TrendingPage />,
+			},
+			{
 				path: "posts/new",
 				element: (
 					<PrivateRoutes>
 						<PostCreatePage />
+					</PrivateRoutes>
+				),
+			},
+			{
+				path: "feed",
+				element: (
+					<PrivateRoutes>
+						<FeedPage />
 					</PrivateRoutes>
 				),
 			},
