@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { getImageUrl } from "../api";
 import "../styles/PostList.css";
 
 // RecentPostListPage와 동일한 미리보기/상대시간 로직
@@ -163,27 +164,44 @@ const PostGridPage = ({ title, fetcher, emptyText = "게시글이 없습니다."
                   </div>
                   <div className="post-card-relative-time">{getRelativeTime(post.createdAt)}</div>
                   <div className="post-card-footer">
-                    <div className="post-card-footer-bottom">
-                      <div className="post-card-meta">
-                        <span className="post-card-author">
-                          {post.author?.name || post.author?.username}
-                        </span>
-                        <span className="post-card-date">
-                          · {new Date(post.createdAt).toLocaleDateString()}
+                    <div className="post-card-footer-top">
+                      <span className="post-card-footer-date">
+                        {new Date(post.createdAt).toLocaleDateString("ko-KR", {
+                          year: "numeric",
+                          month: "long",
+                          day: "numeric",
+                        })}
+                      </span>
+                      <span className="post-card-footer-dot">·</span>
+                      <span className="post-card-footer-comments">
+                        {(post.commentCount ?? 0).toLocaleString("ko-KR")}개의 댓글
+                      </span>
+                    </div>
+
+                    <div className="post-card-footer-bottom2">
+                      <div className="post-card-footer-author">
+                        <img
+                          className="post-card-author-avatar"
+                          src={
+                            post.author?.profileImageUrl
+                              ? getImageUrl(post.author.profileImageUrl)
+                              : "https://cdn-icons-png.flaticon.com/512/149/149071.png"
+                          }
+                          alt="author avatar"
+                        />
+                        <span className="post-card-author-by">by</span>
+                        <span className="post-card-author-username">
+                          {post.author?.username || post.author?.name || ""}
                         </span>
                       </div>
-                      <div className="post-card-stats">
-                        <span className="post-card-stat-item">
-                          <span>♥️</span>
-                          <span>{post.likeCount ?? 0}</span>
-                        </span>
-                        <span className="post-card-stat-item">
-                          <span>💬</span>
-                          <span>{post.commentCount ?? 0}</span>
-                        </span>
-                        <span className="post-card-stat-item">
+                      <div className="post-card-footer-stats">
+                        <span className="post-card-footer-stat-item">
                           <span>👁️‍🗨️</span>
                           <span>{post.viewCount || 0}</span>
+                        </span>
+                        <span className="post-card-footer-stat-item">
+                          <span>♥️</span>
+                          <span>{post.likeCount ?? 0}</span>
                         </span>
                       </div>
                     </div>
