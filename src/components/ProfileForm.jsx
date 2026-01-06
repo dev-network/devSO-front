@@ -5,7 +5,14 @@ import Swal from "sweetalert2";
 
 const DEFAULT_AVATAR = "https://cdn-icons-png.flaticon.com/512/149/149071.png";
 
-const ProfileForm = ({ initialData = {}, serverEmail, onDataChange }) => {
+const ProfileForm = ({ 
+  initialData = {}, 
+  serverEmail, 
+  onDataChange,
+  // 부모로부터 전달받은 상태
+  emailCheckStatus,
+  setEmailCheckStatus
+}) => {
   const [formData, setFormData] = useState({
     name: "",
     bio: "",
@@ -16,7 +23,6 @@ const ProfileForm = ({ initialData = {}, serverEmail, onDataChange }) => {
   });
 
   const [errors, setErrors] = useState({ email: "", portfolio: "" });
-  const [emailCheckStatus, setEmailCheckStatus] = useState("none");
   const [previewUrl, setPreviewUrl] = useState(null);
   const fileInputRef = useRef(null);
 
@@ -26,17 +32,26 @@ const ProfileForm = ({ initialData = {}, serverEmail, onDataChange }) => {
       if (initialData.profileImageUrl) {
         setPreviewUrl(getImageUrl(initialData.profileImageUrl));
       }
-      // 현재 이메일이 서버 원본 이메일과 동일하면 바로 'available' 처리
+      
+      // 초기화 시 서버 원본 이메일과 동일하면 바로 'available' 처리
       if (initialData.email === serverEmail && serverEmail !== "") {
         setEmailCheckStatus("available");
       } else {
         setEmailCheckStatus("none");
       }
     }
-  }, [initialData, serverEmail]);
+  }, [initialData, serverEmail, setEmailCheckStatus]);
 
   const handleEmailCheck = async () => {
     if (!formData.email) return;
+    
+    // 이메일 형식 검사 로직 추가 (선택사항)
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(formData.email)) {
+      setErrors((prev) => ({ ...prev, email: "올바른 이메일 형식이 아닙니다." }));
+      return;
+    }
+
     setEmailCheckStatus("checking");
     try {
       const res = await checkEmailDuplicate(formData.email);
@@ -79,7 +94,7 @@ const ProfileForm = ({ initialData = {}, serverEmail, onDataChange }) => {
     let errorMsg = "";
 
     if (name === "email") {
-      // 💡 핵심: 입력 중 서버 원본 이메일과 같아지면 다시 available, 다르면 none
+      // 입력 중 서버 원본 이메일과 같아지면 다시 available, 다르면 none
       if (value === serverEmail && serverEmail !== "") {
         setEmailCheckStatus("available");
       } else {
@@ -141,9 +156,7 @@ const ProfileForm = ({ initialData = {}, serverEmail, onDataChange }) => {
       <div className="flex-1 space-y-5">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
           <div className="space-y-1">
-            <label className="block text-sm font-semibold text-gray-700">
-              이름
-            </label>
+            <label className="block text-sm font-semibold text-gray-700">이름</label>
             <input
               type="text"
               value={formData.name}
@@ -153,9 +166,7 @@ const ProfileForm = ({ initialData = {}, serverEmail, onDataChange }) => {
           </div>
 
           <div className="space-y-1">
-            <label className="block text-sm font-semibold text-gray-700">
-              이메일
-            </label>
+            <label className="block text-sm font-semibold text-gray-700">이메일</label>
             <div className="flex items-center gap-2">
               <input
                 type="email"
@@ -185,22 +196,16 @@ const ProfileForm = ({ initialData = {}, serverEmail, onDataChange }) => {
                   {errors.email || "이미 사용 중인 이메일입니다."}
                 </p>
               ) : emailCheckStatus === "available" && formData.email ? (
-                <p className="text-green-600 text-xs mt-1">
-                  사용 가능한 이메일입니다.
-                </p>
+                <p className="text-green-600 text-xs mt-1">사용 가능한 이메일입니다.</p>
               ) : emailCheckStatus === "none" && formData.email ? (
-                <p className="text-gray-400 text-xs mt-1">
-                  중복 확인이 필요합니다.
-                </p>
+                <p className="text-gray-400 text-xs mt-1">중복 확인이 필요합니다.</p>
               ) : null}
             </div>
           </div>
         </div>
 
         <div className="space-y-1">
-          <label className="block text-sm font-semibold text-gray-700">
-            전화번호
-          </label>
+          <label className="block text-sm font-semibold text-gray-700">전화번호</label>
           <input
             type="text"
             name="phone"
@@ -212,9 +217,7 @@ const ProfileForm = ({ initialData = {}, serverEmail, onDataChange }) => {
         </div>
 
         <div className="space-y-1">
-          <label className="block text-sm font-semibold text-gray-700">
-            포트폴리오 / SNS 링크
-          </label>
+          <label className="block text-sm font-semibold text-gray-700">포트폴리오 / SNS 링크</label>
           <input
             type="text"
             name="portfolio"

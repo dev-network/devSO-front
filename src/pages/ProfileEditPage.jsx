@@ -20,6 +20,9 @@ const ProfileEditPage = () => {
   const { user: currentUser } = useAuth();
   const [loading, setLoading] = useState(true);
 
+  // 이메일 중복 확인 상태 관리 (none, checking, available, duplicate)
+  const [emailCheckStatus, setEmailCheckStatus] = useState("available");
+
   const [profileData, setProfileData] = useState({
     name: "",
     bio: "",
@@ -29,9 +32,7 @@ const ProfileEditPage = () => {
     email: "",
   });
 
-  // 서버에서 처음 가져온 이메일 원본을 저장 (중복 확인 비교 기준점)
   const [serverEmail, setServerEmail] = useState("");
-
   const [educations, setEducations] = useState([]);
   const [careers, setCareers] = useState([]);
   const [activities, setActivities] = useState([]);
@@ -55,7 +56,9 @@ const ProfileEditPage = () => {
             email: data.email || "",
           });
           
-          setServerEmail(data.email || ""); // 원본 이메일 고정 저장
+          setServerEmail(data.email || ""); 
+          setEmailCheckStatus("available");
+
           setEducations(data.educations || []);
           setCareers(data.careers || []);
           setActivities(data.activities || []);
@@ -76,6 +79,14 @@ const ProfileEditPage = () => {
     }
   }, [currentUser]);
 
+  // 자기소개 핸들러 (500자 제한 로직 포함)
+  const handleBioChange = (e) => {
+    const value = e.target.value;
+    if (value.length <= 500) {
+      setProfileData({ ...profileData, bio: value });
+    }
+  };
+
   const handleAIGenerate = async () => {
     if (!currentUser?.username) return;
     try {
@@ -95,14 +106,19 @@ const ProfileEditPage = () => {
 
       const result = await Swal.fire({
         title: "✨ AI 추천 자기소개",
-        html: `<div style="text-align: left; background: #f8f9fa; padding: 15px; border-radius: 8px; font-size: 0.9rem; line-height: 1.6; max-height: 300px; overflow-y: auto;">${generatedBio.replace(/\n/g, "<br>")}</div>`,
+        html: `
+          <div style="text-align: left; background: #f8f9fa; padding: 15px; border-radius: 8px; font-size: 0.9rem; line-height: 1.6; max-height: 300px; overflow-y: auto;">
+            ${generatedBio.replace(/\n/g, "<br>")}
+          </div>
+          <p style="font-size: 0.8rem; color: #ef4444; margin-top: 10px;">* 500자가 넘을 경우 뒷부분이 생략되어 적용될 수 있습니다.</p>
+        `,
         showCancelButton: true,
         confirmButtonText: "적용하기",
         cancelButtonText: "취소",
       });
 
       if (result.isConfirmed) {
-        setProfileData((prev) => ({ ...prev, bio: generatedBio }));
+        setProfileData((prev) => ({ ...prev, bio: generatedBio.substring(0, 500) }));
       }
     } catch (err) {
       Swal.close();
@@ -112,6 +128,15 @@ const ProfileEditPage = () => {
 
   const handleSave = async () => {
     if (!currentUser?.username) return;
+
+    if (emailCheckStatus !== "available") {
+      Swal.fire({
+        icon: "warning",
+        title: "이메일 중복 확인 필요",
+        text: "변경된 이메일의 중복 확인을 진행해주세요.",
+      });
+      return;
+    }
 
     const result = await Swal.fire({
       title: "변경사항을 저장할까요?",
@@ -148,19 +173,22 @@ const ProfileEditPage = () => {
   return (
     <div className="max-w-4xl mx-auto px-6 py-12 font-sans">
       <h1 className="text-3xl font-extrabold text-gray-900 mb-8 pb-4 border-b">프로필 수정</h1>
+      
       <div className="space-y-8">
         <section className="bg-white rounded-xl shadow-sm border p-6">
           <h2 className="text-lg font-bold text-gray-800 mb-4">기본 인적 사항</h2>
           <ProfileForm
             initialData={profileData}
-            serverEmail={serverEmail} // ✅ 서버 원본 이메일 전달
+            serverEmail={serverEmail}
             onDataChange={setProfileData}
+            emailCheckStatus={emailCheckStatus}
+            setEmailCheckStatus={setEmailCheckStatus}
           />
         </section>
 
         <section className="bg-white rounded-xl shadow-sm border p-6">
           <h2 className="text-lg font-bold text-gray-800 mb-4">학력</h2>
-          <EducationForm initialData={educations} onDataChange={setEducations} />
+          < EducationForm initialData={educations} onDataChange={setEducations} />
         </section>
 
         <section className="bg-white rounded-xl shadow-sm border p-6">
@@ -183,22 +211,56 @@ const ProfileEditPage = () => {
           <SkillsForm initialData={skills} options={{ stacks: stackOptions }} onDataChange={setSkills} />
         </section>
 
+        {/* 자기소개 섹션 */}
         <div className="pt-10 border-t-4 border-double">
+          <div className="bg-indigo-50 border border-indigo-100 rounded-lg p-4 mb-6">
+            <p className="text-indigo-800 text-sm font-medium">
+              💡 <strong>학력, 경력, 기술 스택 등을 자세히 작성할수록</strong> AI가 더욱 정교하고 풍성한 자기소개를 만들어 드립니다!
+            </p>
+          </div>
+
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-2xl font-bold text-indigo-900">자기소개</h2>
-            <button onClick={handleAIGenerate} className="px-6 py-3 bg-indigo-600 text-white rounded-full font-bold shadow-lg hover:bg-indigo-700">✨ AI로 자동 완성하기</button>
+            <button 
+              onClick={handleAIGenerate} 
+              className="px-6 py-3 bg-indigo-600 text-white rounded-full font-bold shadow-lg hover:bg-indigo-700 transition-all active:scale-95"
+            >
+              ✨ AI로 자동 완성하기
+            </button>
           </div>
-          <textarea
-            className="w-full h-64 p-4 border rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none"
-            value={profileData.bio}
-            onChange={(e) => setProfileData({ ...profileData, bio: e.target.value })}
-          />
+          
+          <div className="relative">
+            <textarea
+              className={`w-full h-64 p-4 border rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition-all ${
+                profileData.bio.length >= 500 ? "border-red-400" : "border-gray-300"
+              }`}
+              placeholder="자신을 소개하는 내용을 입력하거나 AI 자동 완성 기능을 이용해 보세요."
+              value={profileData.bio}
+              onChange={handleBioChange}
+            />
+            <div className="absolute bottom-4 right-4 text-sm font-medium">
+              <span className={profileData.bio.length >= 500 ? "text-red-500" : "text-gray-400"}>
+                {profileData.bio.length}
+              </span>
+              <span className="text-gray-400"> / 500자</span>
+            </div>
+          </div>
         </div>
       </div>
 
       <div className="flex justify-end gap-4 mt-12 mb-20">
-        <button className="px-8 py-3 rounded-xl border" onClick={() => navigate(-1)}>취소</button>
-        <button className="px-8 py-3 rounded-xl bg-indigo-600 text-white font-bold" onClick={handleSave}>전체 저장하기</button>
+        <button 
+          className="px-8 py-3 rounded-xl border font-medium text-gray-600 hover:bg-gray-50" 
+          onClick={() => navigate(-1)}
+        >
+          취소
+        </button>
+        <button 
+          className="px-8 py-3 rounded-xl bg-indigo-600 text-white font-bold hover:bg-indigo-700 transition-all shadow-md" 
+          onClick={handleSave}
+        >
+          전체 저장하기
+        </button>
       </div>
     </div>
   );
