@@ -69,8 +69,8 @@ export const logout = (data) => api.post("/api/auth/logout", data);
 export const kakaoLogin = (code) => api.post("/api/auth/kakao", { code });
 
 // 게시물 API
-export const getPosts = (page = 0, size = 10) =>
-	api.get(`/api/posts?page=${page}&size=${size}`);
+export const getPosts = (page = 0, size = 10, q) =>
+	api.get(`/api/posts`, { params: { page, size, ...(q ? { q } : {}) } });
 export const getPost = (id) => api.get(`/api/posts/${id}`);
 export const createPost = (data) => api.post("/api/posts", data);
 export const updatePost = (id, data) => api.put(`/api/posts/${id}`, data);
@@ -121,8 +121,8 @@ export const getFollowing = (username) =>
 	api.get(`/api/users/${username}/following`);
 
 // 피드 API
-export const getFeed = (page = 0, size = 10) =>
-	api.get(`/api/feed?page=${page}&size=${size}`);
+export const getFeed = (page = 0, size = 10, q) =>
+	api.get(`/api/feed`, { params: { page, size, ...(q ? { q } : {}) } });
 export const getExplore = (page = 0, size = 10) =>
 	api.get(`/api/explore?page=${page}&size=${size}`);
 export const getTrending = (page = 0, size = 10) =>

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import "../styles/PostList.css";
 
@@ -58,33 +58,56 @@ const getRelativeTime = (dateString) => {
   return `${diffInYears}년 전`;
 };
 
-const PostGridPage = ({ title, fetcher, emptyText = "게시글이 없습니다." }) => {
+const PostGridPage = ({
+  title,
+  fetcher,
+  emptyText = "게시글이 없습니다.",
+  enableSearch = false,
+  searchPlaceholder = "제목, 내용, 작성자 검색",
+}) => {
   const [posts, setPosts] = useState([]);
   const [page, setPage] = useState(0);
   const [hasMore, setHasMore] = useState(true);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [searchText, setSearchText] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
 
+  // 검색어 디바운스
   useEffect(() => {
-    const fetchPosts = async () => {
-      try {
-        setLoading(true);
-        const response = await fetcher(0, 10);
-        const pageData = response.data?.data || {};
-        const newPosts = pageData.content || [];
-        setPosts(newPosts);
-        setHasMore(!pageData.last);
-        setPage(0);
-      } catch (err) {
-        setError(err.response?.data?.error?.message || "게시글을 불러오는데 실패했습니다.");
-      } finally {
-        setLoading(false);
-      }
-    };
+    if (!enableSearch) return;
+    const t = setTimeout(() => {
+      setDebouncedSearch(searchText.trim());
+    }, 250);
+    return () => clearTimeout(t);
+  }, [searchText, enableSearch]);
 
-    fetchPosts();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  const effectiveQuery = useMemo(() => {
+    if (!enableSearch) return "";
+    return debouncedSearch;
+  }, [enableSearch, debouncedSearch]);
+
+  const fetchFirstPage = useCallback(async () => {
+    try {
+      setError("");
+      setLoading(true);
+      const response = await fetcher(0, 10, effectiveQuery);
+      const pageData = response.data?.data || {};
+      const newPosts = pageData.content || [];
+      setPosts(newPosts);
+      setHasMore(!pageData.last);
+      setPage(0);
+    } catch (err) {
+      setError(err.response?.data?.error?.message || "게시글을 불러오는데 실패했습니다.");
+    } finally {
+      setLoading(false);
+    }
+  }, [fetcher, effectiveQuery]);
+
+  // 최초 로드 + 검색어 변경 시 1페이지 재조회
+  useEffect(() => {
+    fetchFirstPage();
+  }, [fetchFirstPage]);
 
   const loadMore = useCallback(async () => {
     if (loading || !hasMore) return;
@@ -92,7 +115,7 @@ const PostGridPage = ({ title, fetcher, emptyText = "게시글이 없습니다."
     try {
       setLoading(true);
       const nextPage = page + 1;
-      const response = await fetcher(nextPage, 10);
+      const response = await fetcher(nextPage, 10, effectiveQuery);
       const pageData = response.data?.data || {};
       const newPosts = pageData.content || [];
 
@@ -108,7 +131,7 @@ const PostGridPage = ({ title, fetcher, emptyText = "게시글이 없습니다."
     } finally {
       setLoading(false);
     }
-  }, [page, loading, hasMore, fetcher]);
+  }, [page, loading, hasMore, fetcher, effectiveQuery]);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -142,8 +165,20 @@ const PostGridPage = ({ title, fetcher, emptyText = "게시글이 없습니다."
   return (
     <div className="post-list-container">
       <h1 className="post-list-title">{title}</h1>
+      {enableSearch && (
+        <div className="post-list-search">
+          <input
+            className="post-list-search-input"
+            value={searchText}
+            onChange={(e) => setSearchText(e.target.value)}
+            placeholder={searchPlaceholder}
+          />
+        </div>
+      )}
       {posts.length === 0 ? (
-        <div className="post-list-empty">{emptyText}</div>
+        <div className="post-list-empty">
+          {enableSearch && effectiveQuery ? "검색 결과가 없습니다." : emptyText}
+        </div>
       ) : (
         <>
           <div className="post-grid">

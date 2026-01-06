@@ -11,6 +11,32 @@
   color: #333;
 }
 
+.post-list-search {
+  margin: -12px 0 22px 0;
+}
+
+.post-list-search-input {
+  width: 100%;
+  max-width: 520px;
+  height: 42px;
+  padding: 0 14px;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  background: #fff;
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.post-list-search-input:focus {
+  border-color: #c7d2fe;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.12);
+}
+
+.post-list-search-input::placeholder {
+  color: #9ca3af;
+}
+
 .post-grid {
   display: grid;
   grid-template-columns: repeat(5, 1fr);
