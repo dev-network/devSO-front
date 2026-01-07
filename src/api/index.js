@@ -56,7 +56,10 @@ api.interceptors.response.use(
 			localStorage.removeItem("token");
 			if (!hasShownAuthNotice) {
 				hasShownAuthNotice = true;
-				swal.toast({ icon: "info", title: "로그인이 필요합니다. 다시 로그인해주세요." });
+				swal.toast({
+					icon: "info",
+					title: "로그인이 필요합니다. 다시 로그인해주세요.",
+				});
 			}
 			setTimeout(() => {
 				window.location.href = "/login";
@@ -161,7 +164,8 @@ export const leaveChatRoom = (roomId) =>
 // export const getRecruits = () => api.get("/api/recruits");
 export const getRecruits = (filter) =>
 	api.get("/api/recruits", { params: filter });
-export const getRecruitDetail = (id) => api.get(`/api/recruits/${id}`);
+export const getRecruitDetail = (id, isIncrement = false) =>
+	api.get(`/api/recruits/${id}`, { params: { isIncrement } });
 export const createRecruit = (data) => api.post("/api/recruits", data);
 export const updateRecruit = (id, data) => api.put(`/api/recruits/${id}`, data);
 export const deleteRecruit = (id) => api.delete(`/api/recruits/${id}`);
@@ -197,11 +201,11 @@ export const getUserPostsByUsername = (username) =>
 	api.get(`/api/posts/user/${username}`);
 
 // AI bio
-export const generateAiBio = (username) => 
+export const generateAiBio = (username) =>
 	api.post(`/api/users/${username}/ai-bio`);
 
 // email verification
 export const checkEmailDuplicate = (email) => {
-  return api.get(`/api/users/check-email?email=${email}`);
+	return api.get(`/api/users/check-email?email=${email}`);
 };
 export default api;
