@@ -190,28 +190,38 @@ const ProfilePage = () => {
 
               <div className="flex justify-center md:justify-start gap-10 mt-6 font-bold">
                 <button
-                  onClick={() => setModalConfig({ isOpen: true, type: "followers" })}
+                  onClick={() =>
+                    setModalConfig({ isOpen: true, type: "followers" })
+                  }
                   className="flex flex-col items-center md:items-start group transition-all cursor-pointer"
                 >
                   <span className="text-xs opacity-70 uppercase tracking-widest group-hover:underline">
                     Followers
                   </span>
-                  <span className="text-2xl">{profileData.followerCount ?? 0}</span>
+                  <span className="text-2xl">
+                    {profileData.followerCount ?? 0}
+                  </span>
                 </button>
                 <button
-                  onClick={() => setModalConfig({ isOpen: true, type: "following" })}
+                  onClick={() =>
+                    setModalConfig({ isOpen: true, type: "following" })
+                  }
                   className="flex flex-col items-center md:items-start group transition-all cursor-pointer"
                 >
                   <span className="text-xs opacity-70 uppercase tracking-widest group-hover:underline">
                     Following
                   </span>
-                  <span className="text-2xl">{profileData.followingCount ?? 0}</span>
+                  <span className="text-2xl">
+                    {profileData.followingCount ?? 0}
+                  </span>
                 </button>
               </div>
 
               <div className="flex flex-wrap justify-center md:justify-start gap-3 mt-6">
                 <button
-                  onClick={() => navigate(`/profile/${profileData.username}/posts`)}
+                  onClick={() =>
+                    navigate(`/profile/${profileData.username}/posts`)
+                  }
                   className="px-6 py-3 bg-white/20 hover:bg-white/30 text-white font-extrabold rounded-xl border border-white/30 transition-all shadow-md backdrop-blur-sm cursor-pointer"
                 >
                   📝 작성한 글 보기
@@ -273,7 +283,9 @@ const ProfilePage = () => {
                       </div>
                     ))
                   ) : (
-                    <p className="text-gray-400 text-xs">등록된 기술이 없습니다.</p>
+                    <p className="text-gray-400 text-xs">
+                      등록된 기술이 없습니다.
+                    </p>
                   )}
                 </div>
               </section>
@@ -285,7 +297,10 @@ const ProfilePage = () => {
                 <div className="space-y-4">
                   {certis.length > 0 ? (
                     certis.map((cert, i) => (
-                      <div key={i} className="border-l-2 border-indigo-100 pl-3">
+                      <div
+                        key={i}
+                        className="border-l-2 border-indigo-100 pl-3"
+                      >
                         <h4 className="text-sm font-bold text-gray-800">
                           {cert.certiName}
                         </h4>
@@ -296,7 +311,9 @@ const ProfilePage = () => {
                       </div>
                     ))
                   ) : (
-                    <p className="text-gray-400 text-xs">등록된 자격증이 없습니다.</p>
+                    <p className="text-gray-400 text-xs">
+                      등록된 자격증이 없습니다.
+                    </p>
                   )}
                 </div>
               </section>
@@ -317,7 +334,9 @@ const ProfilePage = () => {
                             <h3 className="font-bold text-lg text-gray-900">
                               {item.companyName}
                             </h3>
-                            <p className="text-xs text-gray-500">{item.department}</p>
+                            <p className="text-xs text-gray-500">
+                              {item.department}
+                            </p>
                           </div>
                           <span className="text-xs font-bold text-gray-400 bg-gray-50 px-2 py-1 rounded-md">
                             {item.startDate} ~ {item.endDate || "현재"}
@@ -332,7 +351,9 @@ const ProfilePage = () => {
                       </div>
                     ))
                   ) : (
-                    <p className="text-gray-400 text-sm pl-8">등록된 경력이 없습니다.</p>
+                    <p className="text-gray-400 text-sm pl-8">
+                      등록된 경력이 없습니다.
+                    </p>
                   )}
                 </div>
               </section>
@@ -344,7 +365,10 @@ const ProfilePage = () => {
                 <div className="grid grid-cols-1 gap-6">
                   {activities.length > 0 ? (
                     activities.map((act, idx) => (
-                      <div key={idx} className="p-5 bg-gray-50 rounded-2xl border border-gray-100">
+                      <div
+                        key={idx}
+                        className="p-5 bg-gray-50 rounded-2xl border border-gray-100"
+                      >
                         <div className="flex justify-between items-start mb-2">
                           <span className="px-2 py-1 bg-indigo-100 text-[#6c5ce7] text-[10px] font-bold rounded-md uppercase">
                             {act.category}
@@ -362,7 +386,9 @@ const ProfilePage = () => {
                       </div>
                     ))
                   ) : (
-                    <p className="text-gray-400 text-sm">등록된 활동이 없습니다.</p>
+                    <p className="text-gray-400 text-sm">
+                      등록된 활동이 없습니다.
+                    </p>
                   )}
                 </div>
               </section>
@@ -383,7 +409,9 @@ const ProfilePage = () => {
                       </div>
                     ))
                   ) : (
-                    <p className="text-gray-400 text-sm">학력 정보가 없습니다.</p>
+                    <p className="text-gray-400 text-sm">
+                      학력 정보가 없습니다.
+                    </p>
                   )}
                 </div>
               </section>

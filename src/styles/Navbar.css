@@ -135,4 +135,31 @@
   }
 }
 
+/* 사용자 환영 문구 스타일 */
+.user-greeting {
+  font-size: 17px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.75); /* 배경이 어두우므로 밝은 톤 적용 */
+  margin-right: 10px;
+  letter-spacing: -0.3px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* 유저 아이디(이름) 강조 부분 */
+.user-name-highlight {
+  color: #ffffff;
+  font-weight: 900;
+  /* 브랜드 텍스트와 통일감을 주는 미세한 보라색 그림자 */
+  text-shadow: 0 0 15px rgba(99, 102, 241, 0.4);
+}
+
+/* 모바일 대응: 화면이 좁을 때 아이디 숨기거나 작게 처리 */
+@media (max-width: 768px) {
+  .user-greeting {
+    display: none; /* 모바일에서 너무 좁으면 숨기기 (선택사항) */
+  }
+}
+
 

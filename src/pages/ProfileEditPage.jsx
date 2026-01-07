@@ -172,8 +172,8 @@ const ProfileEditPage = () => {
   if (loading)
     return (
       <div className="sns-page">
-        <div className="sns-container">
-          <div className="text-center py-20 text-gray-500">로딩 중...</div>
+        <div className="sns-container flex items-center justify-center min-h-[60vh]">
+          <div className="text-gray-500 font-medium">프로필 정보를 불러오고 있습니다...</div>
         </div>
       </div>
     );
@@ -181,104 +181,131 @@ const ProfileEditPage = () => {
   return (
     <div className="sns-page">
       <div className="sns-container">
-        <div className="max-w-6xl mx-auto font-sans">
+        <div className="max-w-5xl mx-auto font-sans">
+          {/* 히로 섹션 */}
           <div className="sns-hero-card">
-            <div className="sns-hero-badge">프로필 수정</div>
-            <div className="sns-hero-title">프로필을 최신 정보로 업데이트하세요</div>
-            <div className="sns-hero-subtitle">
-              학력, 경력, 기술 스택을 잘 채워두면 더 많은 기회가 찾아올 수 있어요.
-            </div>
+            <div className="sns-hero-badge">내 프로필 관리</div>
+            <h1 className="sns-hero-title">나의 전문성을<br />기록하고 공유하세요</h1>
+            <p className="sns-hero-subtitle">
+              상세한 프로필은 팀 매칭과 네트워킹의 핵심입니다. <br className="hidden md:block"/>
+              작성한 내용을 바탕으로 AI가 최적화된 자기소개서를 생성해 드려요.
+            </p>
           </div>
 
-      <div className="space-y-8">
-        <section className="sns-surface">
-          <h2 className="sns-surface-title">기본 인적 사항</h2>
-          <ProfileForm
-            initialData={profileData}
-            serverEmail={serverEmail}
-            onDataChange={setProfileData}
-            emailCheckStatus={emailCheckStatus}
-            setEmailCheckStatus={setEmailCheckStatus}
-          />
-        </section>
+          <div className="grid grid-cols-1 gap-8">
+            {/* 기본 정보 섹션 */}
+            <section className="sns-surface p-8">
+              <div className="flex items-center gap-2 mb-6">
+                <div className="w-1.5 h-6 bg-indigo-600 rounded-full"></div>
+                <h2 className="sns-surface-title !mb-0">기본 인적 사항</h2>
+              </div>
+              <ProfileForm
+                initialData={profileData}
+                serverEmail={serverEmail}
+                onDataChange={setProfileData}
+                emailCheckStatus={emailCheckStatus}
+                setEmailCheckStatus={setEmailCheckStatus}
+              />
+            </section>
 
-        <section className="sns-surface">
-          <h2 className="sns-surface-title">학력</h2>
-          < EducationForm initialData={educations} onDataChange={setEducations} />
-        </section>
+            {/* 학력/경력 등 상세 섹션 */}
+            <section className="sns-surface p-8">
+              <div className="flex items-center gap-2 mb-6">
+                <div className="w-1.5 h-6 bg-indigo-600 rounded-full"></div>
+                <h2 className="sns-surface-title !mb-0">학력 및 교육</h2>
+              </div>
+              <EducationForm initialData={educations} onDataChange={setEducations} />
+            </section>
 
-        <section className="sns-surface">
-          <h2 className="sns-surface-title">경력</h2>
-          <CareerForm initialData={careers} onDataChange={setCareers} />
-        </section>
+            <section className="sns-surface p-8">
+              <div className="flex items-center gap-2 mb-6">
+                <div className="w-1.5 h-6 bg-indigo-600 rounded-full"></div>
+                <h2 className="sns-surface-title !mb-0">경력 사항</h2>
+              </div>
+              <CareerForm initialData={careers} onDataChange={setCareers} />
+            </section>
 
-        <section className="sns-surface">
-          <h2 className="sns-surface-title">대외 활동</h2>
-          <ActivityForm initialData={activities} onDataChange={setActivities} />
-        </section>
+            <section className="sns-surface p-8">
+              <div className="flex items-center gap-2 mb-6">
+                <div className="w-1.5 h-6 bg-indigo-600 rounded-full"></div>
+                <h2 className="sns-surface-title !mb-0">대외 활동</h2>
+              </div>
+              <ActivityForm initialData={activities} onDataChange={setActivities} />
+            </section>
 
-        <section className="sns-surface">
-          <h2 className="sns-surface-title">자격증</h2>
-          <CertificateForm initialData={certis} onDataChange={setCertis} />
-        </section>
+            <section className="sns-surface p-8">
+              <div className="flex items-center gap-2 mb-6">
+                <div className="w-1.5 h-6 bg-indigo-600 rounded-full"></div>
+                <h2 className="sns-surface-title !mb-0">자격증 및 수상</h2>
+              </div>
+              <CertificateForm initialData={certis} onDataChange={setCertis} />
+            </section>
 
-        <section className="sns-surface">
-          <h2 className="sns-surface-title">보유 기술</h2>
-          <SkillsForm initialData={skills} options={{ stacks: stackOptions }} onDataChange={setSkills} />
-        </section>
+            <section className="sns-surface p-8">
+              <div className="flex items-center gap-2 mb-6">
+                <div className="w-1.5 h-6 bg-indigo-600 rounded-full"></div>
+                <h2 className="sns-surface-title !mb-0">핵심 기술 스택</h2>
+              </div>
+              <SkillsForm initialData={skills} options={{ stacks: stackOptions }} onDataChange={setSkills} />
+            </section>
 
-        {/* 자기소개 섹션 */}
-        <section className="sns-surface">
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-10">
-            <div>
-              <h2 className="sns-surface-title" style={{ marginBottom: 6 }}>자기소개</h2>
-              <p className="text-sm text-gray-600">
-                💡 학력/경력/기술 스택을 자세히 작성할수록 AI가 더 정교한 소개글을 만들어줘요.
-              </p>
-            </div>
-            <button
-              onClick={handleAIGenerate}
-              className="sns-hero-primary"
-              style={{ boxShadow: "0 10px 22px rgba(79, 70, 229, 0.22)" }}
+            {/* 자기소개 섹션 - AI 기능 강조 */}
+            <section className="sns-surface p-8 border-2 border-indigo-50 bg-indigo-50/10">
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8">
+                <div>
+                  <div className="flex items-center gap-2 mb-2">
+                    <div className="w-1.5 h-6 bg-indigo-600 rounded-full"></div>
+                    <h2 className="sns-surface-title !mb-0">자기소개</h2>
+                  </div>
+                  <p className="text-sm text-indigo-600/80 font-medium">
+                    💡 이력을 먼저 채운 뒤 AI 버튼을 클릭하면 전문적인 문장으로 다듬어 드려요.
+                  </p>
+                </div>
+                <button
+                  onClick={handleAIGenerate}
+                  className="sns-hero-primary !h-12 !px-6 flex items-center gap-2"
+                  style={{ boxShadow: "0 10px 25px rgba(79, 70, 229, 0.3)" }}
+                >
+                  <span className="text-lg">✨</span>
+                  AI 자동 완성 사용하기
+                </button>
+              </div>
+              
+              <div className="relative group">
+                <textarea
+                  className={`w-full h-72 p-5 border-2 rounded-2xl focus:ring-4 focus:ring-indigo-100 outline-none transition-all resize-none leading-relaxed ${
+                    profileData.bio.length >= 500 ? "border-red-400 bg-red-50/30" : "border-gray-200 focus:border-indigo-400"
+                  }`}
+                  placeholder="자신을 가장 잘 표현하는 소개글을 작성해 주세요."
+                  value={profileData.bio}
+                  onChange={handleBioChange}
+                />
+                <div className="absolute bottom-5 right-5 flex items-center gap-2 bg-white/80 backdrop-blur-sm px-3 py-1.5 rounded-full border border-gray-100 shadow-sm">
+                  <span className={`text-xs font-bold ${profileData.bio.length >= 500 ? "text-red-500" : "text-gray-500"}`}>
+                    {profileData.bio.length}
+                  </span>
+                  <span className="text-xs text-gray-300 font-bold">/</span>
+                  <span className="text-xs text-gray-400 font-bold">500자</span>
+                </div>
+              </div>
+            </section>
+          </div>
+
+          {/* 하단 플로팅 액션 바 느낌의 버튼 영역 */}
+          <div className="flex justify-end items-center gap-4 mt-16 mb-24 pt-8 border-t border-gray-200">
+            <button 
+              className="px-10 py-3.5 rounded-xl font-bold text-gray-500 hover:text-gray-700 hover:bg-gray-100 transition-all"
+              onClick={() => navigate(-1)}
             >
-              ✨ AI로 자동 완성하기
+              취소
+            </button>
+            <button 
+              className="sns-hero-primary !h-14 !px-12 !text-lg shadow-xl"
+              onClick={handleSave}
+            >
+              프로필 저장하기
             </button>
           </div>
-          
-          <div className="relative">
-            <textarea
-              className={`w-full h-64 p-4 border rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition-all ${
-                profileData.bio.length >= 500 ? "border-red-400" : "border-gray-300"
-              }`}
-              placeholder="자신을 소개하는 내용을 입력하거나 AI 자동 완성 기능을 이용해 보세요."
-              value={profileData.bio}
-              onChange={handleBioChange}
-            />
-            <div className="absolute bottom-4 right-4 text-sm font-medium">
-              <span className={profileData.bio.length >= 500 ? "text-red-500" : "text-gray-400"}>
-                {profileData.bio.length}
-              </span>
-              <span className="text-gray-400"> / 500자</span>
-            </div>
-          </div>
-        </section>
-      </div>
-
-      <div className="flex justify-end gap-4 mt-12 mb-20">
-        <button 
-          className="px-8 py-3 rounded-xl border font-medium text-gray-600 hover:bg-gray-50" 
-          onClick={() => navigate(-1)}
-        >
-          취소
-        </button>
-        <button 
-          className="sns-hero-primary"
-          style={{ height: 46, padding: "0 22px" }}
-          onClick={handleSave}
-        >
-          전체 저장하기
-        </button>
-      </div>
         </div>
       </div>
     </div>
