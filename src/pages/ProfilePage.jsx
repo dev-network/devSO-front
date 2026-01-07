@@ -207,12 +207,12 @@ const ProfilePage = () => {
           </div>
 
           <div className="flex flex-wrap justify-center md:justify-start gap-3 mt-6">
-            {/* ✅ 작성한 포스트 보기 버튼 추가 */}
+            {/* ✅ 작성한 글 보기 버튼으로 이름 변경 */}
             <button
               onClick={() => navigate(`/profile/${profileData.username}/posts`)}
               className="px-6 py-3 bg-white/20 hover:bg-white/30 text-white font-extrabold rounded-xl border border-white/30 transition-all shadow-md backdrop-blur-sm cursor-pointer"
             >
-              📝 작성한 포스트 보기
+              📝 작성한 글 보기
             </button>
 
             {isOwnProfile ? (
