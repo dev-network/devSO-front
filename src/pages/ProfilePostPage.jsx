@@ -167,6 +167,8 @@ const ProfilePostPage = () => {
     );
 
   const isOwnProfile = currentUser?.username === profileData.username;
+  const skills = profileData.skills || [];
+  const visibleSkills = skills.slice(0, 6);
 
   return (
     <div className="sns-page">
@@ -209,6 +211,36 @@ const ProfilePostPage = () => {
                 </a>
               )}
             </div>
+          </div>
+
+          {/* 기술 스택 (상단 배너에 다시 표시) */}
+          <div className="flex flex-wrap justify-center md:justify-start gap-2 mt-3">
+            {visibleSkills.length > 0 ? (
+              <>
+                {visibleSkills.map((tech, i) => (
+                  <div
+                    key={`${tech.name || "skill"}-${i}`}
+                    className="inline-flex items-center gap-1.5 px-3 py-1 bg-white/20 backdrop-blur-md rounded-lg text-[11px] font-bold border border-white/10"
+                  >
+                    {tech.imageUrl && (
+                      <img
+                        src={tech.imageUrl}
+                        className="w-3.5 h-3.5 object-contain"
+                        alt={tech.name}
+                      />
+                    )}
+                    <span>{tech.name}</span>
+                  </div>
+                ))}
+                {skills.length > visibleSkills.length && (
+                  <div className="inline-flex items-center px-3 py-1 bg-white/15 rounded-lg text-[11px] font-bold border border-white/10">
+                    +{skills.length - visibleSkills.length}
+                  </div>
+                )}
+              </>
+            ) : (
+              <span className="text-xs opacity-60">등록된 기술 스택이 없습니다.</span>
+            )}
           </div>
 
           <p className="text-base opacity-90 font-medium mt-3">
