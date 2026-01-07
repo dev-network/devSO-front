@@ -46,26 +46,6 @@ export default function RecruitDetailPage() {
 	const [isAiLoading, setIsAiLoading] = useState(false);
 	const [isAiModalOpen, setIsAiModalOpen] = useState(false);
 
-	// AI 점수 계산 핸들러 추가
-	const handleCalculateAiScore = async (checkedQuestions) => {
-		try {
-			const res = await calculateAiScore(id, checkedQuestions);
-			const rawData = res.data.data;
-
-			// 서버에서 온 JSON 문자열을 객체로 변환
-			const parsedData =
-				typeof rawData === "string" ? JSON.parse(rawData) : rawData;
-
-			// 중요: 부모의 aiData를 업데이트하여 모달이 점수를 인지하게 함
-			setAiData(parsedData);
-
-			return parsedData.score; // 점수 반환
-		} catch (err) {
-			console.error("점수 계산 실패", err);
-			throw err;
-		}
-	};
-
 	const [options, setOptions] = useState({
 		types: [],
 		positions: [],
@@ -76,10 +56,15 @@ export default function RecruitDetailPage() {
 		members: [],
 	});
 
+	/**
+	 * [수정 핵심 1]
+	 * fetchData는 이제 '갱신 전용'입니다.
+	 * getRecruitDetail(id, false)를 호출하여 조회수를 올리지 않습니다.
+	 */
 	const fetchData = async () => {
 		try {
 			const [detailRes, commentRes, t, p, s, pr, c, d, m] = await Promise.all([
-				getRecruitDetail(id),
+				getRecruitDetail(id, false), // 조회수 증가 방지
 				getRecruitComments(id),
 				getTypes(),
 				getPositions(),
@@ -106,25 +91,54 @@ export default function RecruitDetailPage() {
 		}
 	};
 
+	/**
+	 * [수정 핵심 2]
+	 * useEffect는 페이지 최초 진입 시점에만 getRecruitDetail(id, true)를 호출합니다.
+	 */
 	useEffect(() => {
-		if (id) fetchData();
+		const initPage = async () => {
+			if (!id) return;
+			try {
+				// 최초 로드 시에만 true를 넘겨 조회수 증가
+				const detailRes = await getRecruitDetail(id, true);
+				setRecruit(detailRes.data.data);
+
+				// 상세 데이터 외 나머지 정보들 로드
+				await fetchData();
+			} catch (err) {
+				console.error("최초 로딩 실패", err);
+			}
+		};
+
+		initPage();
 	}, [id]);
+
+	const handleCalculateAiScore = async (checkedQuestions) => {
+		try {
+			const res = await calculateAiScore(id, checkedQuestions);
+			const rawData = res.data.data;
+			const parsedData =
+				typeof rawData === "string" ? JSON.parse(rawData) : rawData;
+			setAiData(parsedData);
+			return parsedData.score;
+		} catch (err) {
+			console.error("점수 계산 실패", err);
+			throw err;
+		}
+	};
 
 	const handleAiChecklist = async (refresh = false) => {
 		if (!user) {
 			swal.info("로그인이 필요합니다.", "로그인 후 이용해주세요.");
 			return;
 		}
-
 		setIsAiModalOpen(true);
 		setIsAiLoading(true);
-
 		try {
 			const res = await getAiChecklist(id, refresh);
 			const rawData = res.data.data;
 			const parsedData =
 				typeof rawData === "string" ? JSON.parse(rawData) : rawData;
-
 			setAiData(parsedData);
 		} catch (err) {
 			console.error("AI 자가진단 실패", err);
@@ -170,9 +184,7 @@ export default function RecruitDetailPage() {
 
 	const handleCommentSubmit = async () => {
 		const trimmedContent = commentInput.trim();
-
 		if (!trimmedContent) return;
-
 		if (trimmedContent.length > 100) {
 			setCommentError(
 				`댓글은 100자 이하여야 합니다. (현재 ${trimmedContent.length}자)`
@@ -181,9 +193,7 @@ export default function RecruitDetailPage() {
 		}
 
 		try {
-			// 요청 시작 시 에러 초기화
 			setCommentError("");
-
 			await createRecruitComment(id, {
 				content: commentInput,
 				parentId: replyTo ? replyTo.id : null,
@@ -191,14 +201,13 @@ export default function RecruitDetailPage() {
 
 			setCommentInput("");
 			setReplyTo(null);
+			// fetchData()는 isIncrement=false로 동작하므로 조회수가 오르지 않음
 			await fetchData();
 		} catch (err) {
-			// 백엔드에서 온 에러 메시지 세팅
 			const serverErrorMessage =
 				err.response?.data?.error?.message ||
 				err.response?.data?.message ||
 				"댓글 등록에 실패했습니다.";
-
 			setCommentError(serverErrorMessage);
 		}
 	};
@@ -251,6 +260,7 @@ export default function RecruitDetailPage() {
 		try {
 			const nextBookmarked = !recruit.bookmarked;
 			await toggleBookmark(id);
+			// 북마크는 서버 데이터를 다시 가져오지 않고 상태만 업데이트하여 조회수 호출 자체를 방지
 			setRecruit((prev) => ({
 				...prev,
 				bookmarked: !prev.bookmarked,
@@ -276,7 +286,6 @@ export default function RecruitDetailPage() {
 			cancelButtonText: "취소",
 		});
 		if (!ok) return;
-
 		try {
 			await deleteRecruit(id);
 			swal.toast({ icon: "success", title: "삭제되었습니다." });
@@ -293,12 +302,13 @@ export default function RecruitDetailPage() {
 		const isClosing = recruit.status === "OPEN" || recruit.status === 1;
 		const ok = await swal.confirm({
 			title: "상태 변경",
-			text: isClosing ? "모집을 마감하시겠습니까?" : "모집을 다시 시작하시겠습니까?",
+			text: isClosing
+				? "모집을 마감하시겠습니까?"
+				: "모집을 다시 시작하시겠습니까?",
 			confirmButtonText: isClosing ? "마감" : "재개",
 			cancelButtonText: "취소",
 		});
 		if (!ok) return;
-
 		try {
 			await toggleStatus(id);
 			swal.toast({ icon: "success", title: "상태가 변경되었습니다." });
@@ -369,7 +379,6 @@ export default function RecruitDetailPage() {
 							</span>
 						</div>
 					</div>
-
 					<div className="flex gap-2">
 						<button
 							onClick={() => handleAiChecklist(false)}
@@ -378,7 +387,6 @@ export default function RecruitDetailPage() {
 							<Icon icon="hugeicons:ai-cloud" width="16" />
 							<span>AI 자가진단</span>
 						</button>
-
 						{isOwner && (
 							<>
 								<button onClick={handleUpdate} className="detail-action-btn">
@@ -476,7 +484,6 @@ export default function RecruitDetailPage() {
 				</div>
 			</footer>
 
-			{/* 댓글 섹션 */}
 			<section className="mt-10 pb-20">
 				<h3 className="font-bold mb-6 text-gray-900 text-lg">
 					댓글{" "}
@@ -530,8 +537,6 @@ export default function RecruitDetailPage() {
 							{replyTo ? "답글 등록" : "등록"}
 						</button>
 					</div>
-
-					{/* 에러 메시지 표시 영역 */}
 					{commentError && (
 						<p className="text-red-500 text-xs mt-2 ml-13 animate-pulse">
 							{commentError}
@@ -656,7 +661,7 @@ export default function RecruitDetailPage() {
 														<span
 															className="font-bold text-[13px] text-gray-800 cursor-pointer hover:underline"
 															onClick={() =>
-																handleProfileClick(comment.author?.username)
+																handleProfileClick(child.author?.username)
 															}
 														>
 															{child.author?.username}
@@ -688,7 +693,6 @@ export default function RecruitDetailPage() {
 				</div>
 			</section>
 
-			{/* AI 자가진단 모달 */}
 			<AiChecklistModal
 				isOpen={isAiModalOpen}
 				onClose={() => setIsAiModalOpen(false)}
@@ -706,7 +710,7 @@ export default function RecruitDetailPage() {
           cursor: pointer;
         }
         .detail-action-btn:hover { background-color: #ffffff; color: #111827; border-color: #d1d5db; }
-				.ai-analysis-btn {
+        .ai-analysis-btn {
           display: flex; align-items: center; gap: 6px;
           padding: 6px 14px; background: #eeefff; color: #4f46e5;
           border-radius: 8px; font-weight: 700; font-size: 13px;
