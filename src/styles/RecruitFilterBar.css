@@ -10,6 +10,32 @@
 	flex-wrap: wrap;
 }
 
+/* 초기화 버튼 ↔ 검색바 간격을 확실히 보이게 하는 스페이서 */
+.filter-controls .filter-controls-spacer {
+	/* 남는 공간을 전부 차지해서 검색바를 같은 줄에서 맨 오른쪽으로 밀어줌 */
+	flex: 1 1 auto;
+	height: 1px;
+}
+
+/* 검색바를 초기화 버튼 오른쪽에 배치 (남는 공간 채우기) */
+.filter-controls .search-bar {
+	/* 요청: 초기화 버튼 오른쪽 여백 추가 + 검색바 너비 줄이기 */
+	flex: 0 1 500px;
+	width: 500px;
+	max-width: 500px;
+	min-width: 260px;
+	margin-left: 0;
+}
+
+@media (max-width: 860px) {
+	.filter-controls .filter-controls-spacer {
+		display: none;
+	}
+	.filter-controls .search-bar {
+		margin-left: 0;
+	}
+}
+
 /* 5. 기술 스택 드롭다운 패널 */
 .dropdown-wrapper {
 	position: relative;
