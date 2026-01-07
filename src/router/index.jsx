@@ -34,15 +34,17 @@ const router = createBrowserRouter([
 		),
 		children: [
 			{
-				// SNS(=최신) 영역: 헤더 탭 고정 + 아래만 라우팅으로 교체
+				// ✅ 기본 홈: 대시보드 (로그인 여부 무관)
+				index: true,
+				element: <DashboardPage />,
+			},
+			{
+				// SNS 영역은 /sns 하위로 이동
+				path: "sns",
 				element: <SnsLayoutPage />,
 				children: [
 					{
 						index: true,
-						element: <RecentPostListPage />,
-					},
-					{
-						path: "posts",
 						element: <RecentPostListPage />,
 					},
 					{
@@ -62,6 +64,11 @@ const router = createBrowserRouter([
 			{
 				path: "dashboard",
 				element: <DashboardPage />,
+			},
+			// 기존 호환: /posts 로 접근하면 SNS 최신으로 (리스트만)
+			{
+				path: "posts",
+				element: <RecentPostListPage />,
 			},
 			{
 				path: "posts/new",

@@ -13,7 +13,7 @@ export default function RootLayout() {
 
 	// SNS 영역(/, /posts..., /trending..., /feed...)에서는 네비게이션의 SNS 탭을 항상 활성화 표시
 	const isSnsActive =
-		location.pathname === "/" ||
+		location.pathname.startsWith("/sns") ||
 		location.pathname.startsWith("/posts") ||
 		location.pathname.startsWith("/trending") ||
 		location.pathname.startsWith("/feed");
@@ -39,7 +39,7 @@ export default function RootLayout() {
 						<div className="devso-nav-links">
 							{/* --- 누구나 볼 수 있는 메뉴 (Public) --- */}
 							<NavLink
-								to="/"
+								to="/sns"
 								className={() =>
 									`devso-nav-link ${isSnsActive ? "active" : ""}`
 								}

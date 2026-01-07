@@ -7,7 +7,7 @@ export default function SnsTabs() {
   return (
     <div className="sns-header-tabs">
       <NavLink
-        to="/"
+        to="/sns"
         end
         className={({ isActive }) => `sns-header-tab ${isActive ? "active" : ""}`}
       >
@@ -15,14 +15,14 @@ export default function SnsTabs() {
       </NavLink>
       {isAuthenticated && (
         <NavLink
-          to="/feed"
+          to="/sns/feed"
           className={({ isActive }) => `sns-header-tab ${isActive ? "active" : ""}`}
         >
           피드
         </NavLink>
       )}
       <NavLink
-        to="/trending"
+        to="/sns/trending"
         className={({ isActive }) => `sns-header-tab ${isActive ? "active" : ""}`}
       >
         트렌딩

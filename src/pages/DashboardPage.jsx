@@ -196,7 +196,7 @@ export default function DashboardPage() {
 					title="최신 게시글"
 					subtitle="클릭하면 게시글 상세로 이동합니다."
 					items={postItems}
-					onMore={() => navigate("/")}
+					onMore={() => navigate("/sns")}
 					renderItem={(p) => (
 						(() => {
 							const authorUsername = p?.author?.username || p?.user?.username || "익명";
