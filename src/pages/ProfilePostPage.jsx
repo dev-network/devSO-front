@@ -7,11 +7,16 @@ import {
   getTechStacks, 
   getUserPostsByUsername, 
   follow, 
-  unfollow 
+  unfollow,
+  getRecruits,
+  getTypes,
+  getPositions
 } from "../api";
 import FollowListModal from "../components/FollowListModal";
+import RecruitCard from "../components/RecruitCard";
 import Swal from "sweetalert2";
 import "../styles/PostList.css";
+import "../styles/Recruit.css";
 
 const DEFAULT_AVATAR = "https://cdn-icons-png.flaticon.com/512/149/149071.png";
 
@@ -21,8 +26,12 @@ const ProfilePostPage = () => {
   
   const [profileData, setProfileData] = useState(null);
   const [userPosts, setUserPosts] = useState([]);
+  const [userRecruits, setUserRecruits] = useState([]);
+  const [recruitCount, setRecruitCount] = useState(0);
+  const [recruitOptions, setRecruitOptions] = useState({ types: [], positions: [] });
   const [loading, setLoading] = useState(true);
   const [followLoading, setFollowLoading] = useState(false);
+  const [activeTab, setActiveTab] = useState("posts"); // "posts" | "recruits"
   
   // 스크롤 버튼 상태
   const [showScrollButtons, setShowScrollButtons] = useState(false);
@@ -43,12 +52,18 @@ const ProfilePostPage = () => {
       Promise.all([
         getProfile(targetUsername),
         getTechStacks(),
-        getUserPostsByUsername(targetUsername)
+        getUserPostsByUsername(targetUsername),
+        getRecruits({ onlyMyRecruits: true, currentUsername: targetUsername }),
+        getTypes(),
+        getPositions()
       ])
-        .then(([profileRes, techRes, postsRes]) => {
+        .then(([profileRes, techRes, postsRes, recruitsRes, typesRes, posRes]) => {
           const data = profileRes.data?.data || profileRes.data;
           const allStacks = techRes.data?.data || techRes.data;
           const posts = postsRes.data?.data || [];
+          const recruitsData = recruitsRes.data?.data;
+          const recruits = recruitsData?.content || recruitsData || [];
+          const rCount = recruitsData?.totalElements ?? recruits.length;
 
           // ProfilePage와 동일한 스킬 이미지 및 라벨 매핑 로직
           if (data && data.skills) {
@@ -66,8 +81,14 @@ const ProfilePostPage = () => {
 
           setProfileData(data);
           // 포스트 최신순 정렬
-          const sorted = [...posts].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-          setUserPosts(sorted);
+          const sortedPosts = [...posts].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+          setUserPosts(sortedPosts);
+          setUserRecruits(recruits);
+          setRecruitCount(rCount);
+          setRecruitOptions({
+            types: typesRes.data || [],
+            positions: posRes.data || []
+          });
           setLoading(false);
         })
         .catch((err) => {
@@ -248,44 +269,98 @@ const ProfilePostPage = () => {
 
       {/* 포스트 리스트 섹션 */}
       <section className="user-posts">
-        <div className="flex items-center justify-between mb-8 px-2">
-          <h3 className="text-2xl font-black text-gray-800 flex items-center gap-2">
-            📝 작성한 포스트 <span className="text-[#6c5ce7] bg-[#6c5ce7]/10 px-3 py-1 rounded-full text-sm">{userPosts.length}</span>
-          </h3>
+        {/* SNS/Recruit 스타일의 탭 버튼 그룹 */}
+        <div className="recruit-header-tabs" style={{ marginBottom: "30px", gap: "20px" }}>
+          <button
+            className={`recruit-header-tab ${activeTab === "posts" ? "active" : ""}`}
+            onClick={() => setActiveTab("posts")}
+            style={{ display: "flex", alignItems: "center", gap: "10px" }}
+          >
+            작성한 게시글 보기
+            <span style={{ 
+              fontSize: "14px", 
+              backgroundColor: activeTab === "posts" ? "rgba(108, 92, 231, 0.1)" : "#f1f3f5",
+              color: activeTab === "posts" ? "#6c5ce7" : "#adb5bd",
+              padding: "4px 12px",
+              borderRadius: "20px",
+              fontWeight: "800",
+              transition: "all 0.2s"
+            }}>
+              {userPosts.length}
+            </span>
+          </button>
+          <button
+            className={`recruit-header-tab ${activeTab === "recruits" ? "active" : ""}`}
+            onClick={() => setActiveTab("recruits")}
+            style={{ display: "flex", alignItems: "center", gap: "10px" }}
+          >
+            작성한 모집글 보기
+            <span style={{ 
+              fontSize: "14px", 
+              backgroundColor: activeTab === "recruits" ? "rgba(108, 92, 231, 0.1)" : "#f1f3f5",
+              color: activeTab === "recruits" ? "#6c5ce7" : "#adb5bd",
+              padding: "4px 12px",
+              borderRadius: "20px",
+              fontWeight: "800",
+              transition: "all 0.2s"
+            }}>
+              {recruitCount}
+            </span>
+          </button>
         </div>
         
-        {userPosts.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {userPosts.map((post) => (
-              <div 
-                key={post.id} 
-                onClick={() => navigate(`/posts/${post.id}`)} 
-                className="group bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-xl hover:-translate-y-1 transition-all cursor-pointer"
-              >
-                <div className="relative h-48 bg-gray-100 overflow-hidden">
-                  {post.imageUrl ? (
-                    <img 
-                      src={renderImage(post.imageUrl)} 
-                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" 
-                      alt={post.title} 
-                    />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center text-gray-300 font-bold bg-gray-50">No Image</div>
-                  )}
+        {activeTab === "posts" ? (
+          userPosts.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {userPosts.map((post) => (
+                <div 
+                  key={post.id} 
+                  onClick={() => navigate(`/posts/${post.id}`)} 
+                  className="group bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-xl hover:-translate-y-1 transition-all cursor-pointer"
+                >
+                  <div className="relative h-48 bg-gray-100 overflow-hidden">
+                    {post.imageUrl ? (
+                      <img 
+                        src={renderImage(post.imageUrl)} 
+                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" 
+                        alt={post.title} 
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-gray-300 font-bold bg-gray-50">No Image</div>
+                    )}
+                  </div>
+                  <div className="p-5">
+                    <h4 className="font-black text-lg mb-2 line-clamp-1 group-hover:text-[#6c5ce7]">{post.title}</h4>
+                    <p className="text-gray-500 text-sm line-clamp-2 h-10 leading-relaxed">
+                      {post.content?.replace(/[#*`]/g, '')}
+                    </p>
+                  </div>
                 </div>
-                <div className="p-5">
-                  <h4 className="font-black text-lg mb-2 line-clamp-1 group-hover:text-[#6c5ce7]">{post.title}</h4>
-                  <p className="text-gray-500 text-sm line-clamp-2 h-10 leading-relaxed">
-                    {post.content?.replace(/[#*`]/g, '')}
-                  </p>
-                </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-20 bg-white rounded-3xl border-2 border-dashed border-gray-100 text-gray-400">
+              작성한 게시글이 없습니다.
+            </div>
+          )
         ) : (
-          <div className="text-center py-20 bg-white rounded-3xl border-2 border-dashed border-gray-100 text-gray-400">
-            작성한 게시글이 없습니다.
-          </div>
+          userRecruits.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {userRecruits.map((recruit) => (
+                <RecruitCard
+                  key={recruit.id}
+                  recruit={recruit}
+                  options={recruitOptions}
+                  onClick={() => navigate(`/recruits/${recruit.id}`)}
+                  // 북마크 클릭 핸들러는 필요에 따라 추가 가능 (현재는 표시 위주)
+                />
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-20 bg-white rounded-3xl border-2 border-dashed border-gray-100 text-gray-400">
+              작성한 모집글이 없습니다.
+            </div>
+          )
         )}
       </section>
 
