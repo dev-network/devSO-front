@@ -63,7 +63,7 @@ const RecruitMainPage = () => {
 			const response = await getRecruits({
 				...currentFilter,
 				page: page,
-				size: 8,
+				size: 10,
 			});
 
 			// 백엔드 응답에서 실제 데이터가 담긴 위치를 찾습니다.
@@ -160,7 +160,7 @@ const RecruitMainPage = () => {
 		<div className="recruit-page">
 			<div className="recruit-container">
 				<section className="recruit-hero">
-					<div className="recruit-hero-badge">이번 주 {totalElements}개의 새로운 프로젝트</div>
+					<div className="recruit-hero-badge">총 {totalElements}개의 프로젝트</div>
 					<h1 className="recruit-hero-title">
 						함께 성장하는
 						<br />
@@ -225,15 +225,7 @@ const RecruitMainPage = () => {
 						/>
 					</div>
 
-					<div className="recruit-section-header">
-						<div className="recruit-section-title">
-							<div className="recruit-section-bar" />
-							<div className="recruit-section-name">최신 모집글</div>
-						</div>
-						<div className="recruit-count">
-							총 <span>{totalElements}</span>개
-						</div>
-					</div>
+					{/* 리스트 상단의 "총 X개" 및 파란 마크 제거 */}
 
 					{loading ? (
 						<div className="loading">데이터 로딩 중...</div>

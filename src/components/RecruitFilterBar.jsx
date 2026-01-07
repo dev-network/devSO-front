@@ -219,27 +219,31 @@ const RecruitFilterBar = ({ options, filter, setFilter, resetFilters, showTabs =
 					>
 						👀 모집 중만 보기
 					</button>
+
+					<button className="reset-btn" onClick={resetFilters} type="button">
+						<span className="reset-icon">🔄</span>
+						초기화
+					</button>
 				</div>
 
-				<button className="reset-btn" onClick={resetFilters}>
-					<span className="reset-icon">🔄</span>
-					초기화
-				</button>
-			</div>
+				{/* 초기화 버튼과 검색바 사이 간격 (눈에 보이게 고정) */}
+				<div className="filter-controls-spacer" aria-hidden="true" />
 
-			<div className="search-bar" style={{ width: "100%", maxWidth: "none" }}>
-				<span className="search-icon">🔍</span>
-				<input
-					type="text"
-					placeholder="제목, 글 내용을 검색해보세요."
-					value={localSearch}
-					onChange={(e) => setLocalSearch(e.target.value)}
-					onKeyDown={(e) => {
-						if (e.key === "Enter") {
-							setFilter((prev) => ({ ...prev, search: localSearch }));
-						}
-					}}
-				/>
+				{/* 검색바: 초기화 버튼 오른쪽에 배치 */}
+				<div className="search-bar">
+					<span className="search-icon">🔍</span>
+					<input
+						type="text"
+						placeholder="제목, 글 내용을 검색해보세요."
+						value={localSearch}
+						onChange={(e) => setLocalSearch(e.target.value)}
+						onKeyDown={(e) => {
+							if (e.key === "Enter") {
+								setFilter((prev) => ({ ...prev, search: localSearch }));
+							}
+						}}
+					/>
+				</div>
 			</div>
 		</div>
 	);

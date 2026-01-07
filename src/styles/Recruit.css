@@ -177,12 +177,13 @@
 }
 
 .recruit-filter-wrapper {
-	background: #fff;
-	border: 1px solid #e5e7eb;
-	border-radius: 16px;
-	padding: 16px;
-	box-shadow: 0 10px 25px rgba(2, 6, 23, 0.06);
-	margin-bottom: 22px;
+	/* 요청: 드랍다운 바를 감싸는 흰 박스 제거 */
+	background: transparent;
+	border: none;
+	border-radius: 0;
+	padding: 0;
+	box-shadow: none;
+	margin-bottom: 16px;
 }
 
 /* RecruitFilterBar 내의 드랍다운바(filter-controls) 스타일 최적화 */
@@ -195,12 +196,12 @@
 
 .recruit-filter-wrapper .dropdown-btn,
 .recruit-filter-wrapper .select-filter {
-	height: 40px;
-	padding: 0 14px;
+	height: 44px;
+	padding: 0 16px;
 	border-radius: 10px;
 	border: 1px solid #e5e7eb;
 	background: #fff;
-	font-size: 14px;
+	font-size: 15px;
 	font-weight: 700;
 	color: #374151;
 	cursor: pointer;
@@ -217,15 +218,16 @@
 	display: flex;
 	gap: 8px;
 	flex-wrap: wrap;
+	align-items: center;
 }
 
 .recruit-filter-wrapper .toggle-chip {
-	height: 36px;
-	padding: 0 14px;
+	height: 40px;
+	padding: 0 16px;
 	border-radius: 999px;
 	border: 1px solid #e5e7eb;
 	background: #fff;
-	font-size: 13px;
+	font-size: 14px;
 	font-weight: 700;
 	color: #6b7280;
 	cursor: pointer;
@@ -240,20 +242,27 @@
 }
 
 .recruit-filter-wrapper .reset-btn {
-	margin-left: auto;
-	background: none;
-	border: none;
-	color: #9ca3af;
-	font-size: 13px;
-	font-weight: 700;
+	/* 모집중만 보기 버튼 오른쪽에 붙이기 + 크기 조금 키우기 */
+	margin-left: 6px;
+	height: 44px;
+	padding: 0 16px;
+	border-radius: 999px;
+	border: 1px solid #e5e7eb;
+	background: #ffffff;
+	color: #6b7280;
+	font-size: 14px;
+	font-weight: 800;
 	cursor: pointer;
-	display: flex;
+	display: inline-flex;
 	align-items: center;
-	gap: 4px;
+	gap: 6px;
+	transition: all 0.15s ease;
 }
 
 .recruit-filter-wrapper .reset-btn:hover {
-	color: #6b7280;
+	border-color: #d1d5db;
+	background: #f9fafb;
+	color: #4b5563;
 }
 
 /* ===== 4. 게시글 그리드 레이아웃 ===== */
