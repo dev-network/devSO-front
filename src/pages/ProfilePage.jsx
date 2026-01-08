@@ -185,7 +185,7 @@ const ProfilePage = () => {
               </div>
 
               <p className="text-base opacity-90 font-medium mt-3">
-                {careers.length > 0 ? careers[0].position : "반갑습니다!"}
+                {careers.length > 0 ? careers[0].position : ""}
               </p>
 
               <div className="flex justify-center md:justify-start gap-10 mt-6 font-bold">
@@ -250,6 +250,7 @@ const ProfilePage = () => {
 
           {/* --- 메인 콘텐츠 --- */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 pb-20">
+            {/* 왼쪽 사이드바: 소개, 기술스택만 남김 */}
             <div className="lg:col-span-1 space-y-8">
               <section className="bg-white rounded-2xl shadow-sm border border-gray-100 p-7">
                 <h2 className="text-lg font-black mb-4">📝 소개</h2>
@@ -289,36 +290,9 @@ const ProfilePage = () => {
                   )}
                 </div>
               </section>
-
-              <section className="bg-white rounded-2xl shadow-sm border border-gray-100 p-7">
-                <h2 className="text-lg font-black mb-4 flex items-center gap-2">
-                  <span className="text-[#6c5ce7]">📜</span> 자격증
-                </h2>
-                <div className="space-y-4">
-                  {certis.length > 0 ? (
-                    certis.map((cert, i) => (
-                      <div
-                        key={i}
-                        className="border-l-2 border-indigo-100 pl-3"
-                      >
-                        <h4 className="text-sm font-bold text-gray-800">
-                          {cert.certiName}
-                        </h4>
-                        <p className="text-xs text-gray-500">{cert.issuer}</p>
-                        <p className="text-[10px] text-gray-400">
-                          {cert.acquisitionDate}
-                        </p>
-                      </div>
-                    ))
-                  ) : (
-                    <p className="text-gray-400 text-xs">
-                      등록된 자격증이 없습니다.
-                    </p>
-                  )}
-                </div>
-              </section>
             </div>
 
+            {/* 오른쪽 메인 콘텐츠: 경력사항, 주요활동, 학력, 자격증 */}
             <div className="lg:col-span-2 space-y-8">
               <section className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
                 <h2 className="text-xl font-black mb-6 text-gray-800 flex items-center gap-2">
@@ -393,6 +367,7 @@ const ProfilePage = () => {
                 </div>
               </section>
 
+              {/* 학력 섹션 */}
               <section className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
                 <h2 className="text-xl font-black mb-6">🎓 학력</h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -411,6 +386,35 @@ const ProfilePage = () => {
                   ) : (
                     <p className="text-gray-400 text-sm">
                       학력 정보가 없습니다.
+                    </p>
+                  )}
+                </div>
+              </section>
+
+              {/* 자격증 섹션 (학력 밑으로 이동) */}
+              <section className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
+                <h2 className="text-xl font-black mb-6 flex items-center gap-2">
+                  <span className="text-[#6c5ce7]">📜</span> 자격증
+                </h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {certis.length > 0 ? (
+                    certis.map((cert, i) => (
+                      <div
+                        key={i}
+                        className="flex flex-col p-4 bg-gray-50 rounded-xl border-l-4 border-indigo-400"
+                      >
+                        <h4 className="text-base font-bold text-gray-800">
+                          {cert.certiName}
+                        </h4>
+                        <p className="text-sm text-gray-600">{cert.issuer}</p>
+                        <p className="text-xs text-gray-400 mt-1">
+                          취득일: {cert.acquisitionDate}
+                        </p>
+                      </div>
+                    ))
+                  ) : (
+                    <p className="text-gray-400 text-sm">
+                      등록된 자격증이 없습니다.
                     </p>
                   )}
                 </div>
