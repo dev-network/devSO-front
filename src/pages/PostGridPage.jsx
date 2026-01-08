@@ -235,7 +235,7 @@ const PostGridPage = ({
                         />
                         <span className="post-card-author-by">by</span>
                         <span className="post-card-author-username">
-                          {post.author?.username || post.author?.name || ""}
+                          {post.author?.name || post.author?.username || ""}
                         </span>
                       </div>
                       <div className="post-card-footer-stats">

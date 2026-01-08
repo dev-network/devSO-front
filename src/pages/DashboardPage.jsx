@@ -202,7 +202,12 @@ export default function DashboardPage() {
 					onMore={() => navigate("/sns")}
 					renderItem={(p) => (
 						(() => {
-							const authorUsername = p?.author?.username || p?.user?.username || "익명";
+							const authorName =
+								p?.author?.name ||
+								p?.author?.username ||
+								p?.user?.name ||
+								p?.user?.username ||
+								"익명";
 							const thumb =
 								(p.imageUrl ? getImageUrl(p.imageUrl) : null) ||
 								(extractFirstMarkdownImageUrl(p.content)
@@ -228,7 +233,7 @@ export default function DashboardPage() {
 									<div className="dash-card-meta">
 										<span className="dash-chip">{formatRelativeTime(p.createdAt)}</span>
 										<span className="dash-dot">·</span>
-										<span className="dash-muted">by {authorUsername}</span>
+										<span className="dash-muted">by {authorName}</span>
 									</div>
 								</div>
 								<div className="dash-card-bottom">
