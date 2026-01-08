@@ -340,9 +340,9 @@ export default function RecruitDetailPage() {
 
 	return (
 		<div className="max-w-4xl mx-auto px-6 py-10 bg-white min-h-screen">
-			<button onClick={() => navigate(-1)} className="detail-back-btn">
+			<button onClick={() => navigate("/recruits")} className="detail-back-btn">
 				<Icon icon="mdi:arrow-left" width="20" height="20" />
-				<span>뒤로가기</span>
+				<span>목록가기</span>
 			</button>
 
 			<header className="mb-12">
