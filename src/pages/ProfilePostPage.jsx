@@ -272,13 +272,13 @@ const ProfilePostPage = () => {
                   </>
                 ) : (
                   <span className="text-xs opacity-60">
-                    등록된 기술 스택이 없습니다.
+              
                   </span>
                 )}
               </div>
 
               <p className="text-lg opacity-90 font-bold mb-4">
-                {profileData?.careers?.[0]?.position || "반갑습니다!"}
+                {profileData?.careers?.[0]?.position || ""}
               </p>
 
               {/* 팔로워/팔로잉 정보 */}
