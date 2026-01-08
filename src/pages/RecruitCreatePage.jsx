@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import Select from "react-select";
 import ReactQuill, { Quill } from "react-quill-new";
@@ -17,6 +17,8 @@ import {
 	getContactTypes,
 	getDurationTypes,
 	getMemberCount,
+	uploadFile,
+	getImageUrl,
 } from "../api";
 
 // Quill 포맷 등록
@@ -26,12 +28,11 @@ Quill.register(List, true);
 export default function RecruitCreatePage() {
 	const navigate = useNavigate();
 	const location = useLocation();
+	const quillRef = useRef(null);
 
-	// 1. 수정 모드 확인 및 초기 데이터 설정
 	const editData = location.state?.editData;
 	const isEditMode = !!editData;
 
-	// 폼 상태
 	const [title, setTitle] = useState(editData?.title || "");
 	const [content, setContent] = useState(editData?.content || "");
 	const [deadLine, setDeadLine] = useState(
@@ -39,7 +40,6 @@ export default function RecruitCreatePage() {
 	);
 	const [contactInfo, setContactInfo] = useState(editData?.contactInfo || "");
 
-	// Select 컴포넌트용 객체 상태
 	const [type, setType] = useState(null);
 	const [position, setPosition] = useState([]);
 	const [progressType, setProgressType] = useState(null);
@@ -47,11 +47,9 @@ export default function RecruitCreatePage() {
 	const [totalCount, setTotalCount] = useState(null);
 	const [contactMethod, setContactMethod] = useState(null);
 
-	// 기술 스택 관련 상태
 	const [selectedStacks, setSelectedStacks] = useState([]);
 	const [activeCategory, setActiveCategory] = useState("모두보기");
 
-	// enum 옵션 상태
 	const [options, setOptions] = useState({
 		types: [],
 		positions: [],
@@ -62,7 +60,57 @@ export default function RecruitCreatePage() {
 		members: [],
 	});
 
-	// 2. 데이터 불러오기 및 수정 데이터 매핑
+	// ---------------------------------------------------------
+	// 이미지 핸들러 및 에디터 설정
+	// ---------------------------------------------------------
+	const imageHandler = () => {
+		const input = document.createElement("input");
+		input.setAttribute("type", "file");
+		input.setAttribute("accept", "image/*");
+		input.click();
+
+		input.onchange = async () => {
+			const file = input.files[0];
+			if (!file) return;
+
+			try {
+				const res = await uploadFile(file);
+				const path = res.data?.data?.url;
+				if (!path) throw new Error("이미지 경로를 응답받지 못했습니다.");
+
+				const fullUrl = getImageUrl(path);
+				const editor = quillRef.current.getEditor();
+				const range = editor.getSelection();
+				const index = range ? range.index : editor.getLength();
+
+				editor.insertEmbed(index, "image", fullUrl);
+				editor.setSelection(index + 1);
+			} catch (error) {
+				console.error("이미지 업로드 에러:", error);
+				swal.error("이미지 업로드에 실패했습니다.");
+			}
+		};
+	};
+
+	const modules = useMemo(
+		() => ({
+			toolbar: {
+				container: [
+					[{ header: [1, 2, false] }],
+					["bold", "italic", "underline", "strike", "blockquote"],
+					[{ list: "ordered" }, { list: "bullet" }],
+					["link", "image"],
+					["clean"],
+				],
+				handlers: { image: imageHandler },
+			},
+		}),
+		[]
+	);
+
+	// ---------------------------------------------------------
+	// 데이터 로딩 및 초기화
+	// ---------------------------------------------------------
 	useEffect(() => {
 		const fetchEnumsAndSetData = async () => {
 			try {
@@ -160,7 +208,10 @@ export default function RecruitCreatePage() {
 
 	const handleSubmit = async (e) => {
 		e.preventDefault();
-		if (content.replace(/<(.|\n)*?>/g, "").trim().length === 0) {
+		if (
+			content.replace(/<(.|\n)*?>/g, "").trim().length === 0 &&
+			!content.includes("<img")
+		) {
 			swal.warn("내용을 입력해주세요.");
 			return;
 		}
@@ -199,12 +250,16 @@ export default function RecruitCreatePage() {
 	return (
 		<div className="sns-page">
 			<div className="sns-container">
-				<div className="sns-surface auth-box" style={{ maxWidth: "1000px", margin: "0 auto", textAlign: "left" }}>
+				<div
+					className="sns-surface auth-box"
+					style={{ maxWidth: "1000px", margin: "0 auto", textAlign: "left" }}
+				>
 					<h1 className="text-3xl font-black mb-8 text-gray-900">
 						{isEditMode ? "모집글 수정" : "팀원 모집글 작성"}
 					</h1>
 
 					<form onSubmit={handleSubmit} className="space-y-10">
+						{/* 1. 기본 정보 섹션 */}
 						<section className="space-y-4">
 							<h2 className="font-bold text-lg flex items-center gap-2 text-gray-800">
 								<span className="text-white bg-indigo-600 w-6 h-6 flex justify-center items-center rounded-full text-xs">
@@ -226,10 +281,10 @@ export default function RecruitCreatePage() {
 										styles={{
 											control: (base) => ({
 												...base,
-												borderRadius: '10px',
-												borderColor: '#e5e7eb',
-												padding: '2px'
-											})
+												borderRadius: "10px",
+												borderColor: "#e5e7eb",
+												padding: "2px",
+											}),
 										}}
 									/>
 								</div>
@@ -246,10 +301,10 @@ export default function RecruitCreatePage() {
 										styles={{
 											control: (base) => ({
 												...base,
-												borderRadius: '10px',
-												borderColor: '#e5e7eb',
-												padding: '2px'
-											})
+												borderRadius: "10px",
+												borderColor: "#e5e7eb",
+												padding: "2px",
+											}),
 										}}
 									/>
 								</div>
@@ -266,10 +321,10 @@ export default function RecruitCreatePage() {
 										styles={{
 											control: (base) => ({
 												...base,
-												borderRadius: '10px',
-												borderColor: '#e5e7eb',
-												padding: '2px'
-											})
+												borderRadius: "10px",
+												borderColor: "#e5e7eb",
+												padding: "2px",
+											}),
 										}}
 									/>
 								</div>
@@ -298,10 +353,10 @@ export default function RecruitCreatePage() {
 										styles={{
 											control: (base) => ({
 												...base,
-												borderRadius: '10px',
-												borderColor: '#e5e7eb',
-												padding: '2px'
-											})
+												borderRadius: "10px",
+												borderColor: "#e5e7eb",
+												padding: "2px",
+											}),
 										}}
 									/>
 								</div>
@@ -318,10 +373,10 @@ export default function RecruitCreatePage() {
 										styles={{
 											control: (base) => ({
 												...base,
-												borderRadius: '10px',
-												borderColor: '#e5e7eb',
-												padding: '2px'
-											})
+												borderRadius: "10px",
+												borderColor: "#e5e7eb",
+												padding: "2px",
+											}),
 										}}
 									/>
 								</div>
@@ -338,10 +393,10 @@ export default function RecruitCreatePage() {
 										styles={{
 											control: (base) => ({
 												...base,
-												borderRadius: '10px',
-												borderColor: '#e5e7eb',
-												padding: '2px'
-											})
+												borderRadius: "10px",
+												borderColor: "#e5e7eb",
+												padding: "2px",
+											}),
 										}}
 									/>
 								</div>
@@ -361,7 +416,7 @@ export default function RecruitCreatePage() {
 							</div>
 						</section>
 
-						{/* 기술 스택 섹션 */}
+						{/* 2. 기술 스택 섹션 - [수정됨: 선택된 스택 표시 부분 다시 추가] */}
 						<section className="space-y-4">
 							<label className="block font-bold text-gray-700 text-sm">
 								기술 스택
@@ -385,11 +440,11 @@ export default function RecruitCreatePage() {
 										)
 									)}
 								</div>
-
 								<div
 									style={{
 										display: "grid",
-										gridTemplateColumns: "repeat(auto-fill, minmax(130px, 1fr))",
+										gridTemplateColumns:
+											"repeat(auto-fill, minmax(130px, 1fr))",
 										gap: "12px",
 										padding: "24px",
 										minHeight: "150px",
@@ -397,83 +452,53 @@ export default function RecruitCreatePage() {
 										justifyContent: "start",
 									}}
 								>
-									{filteredStacks.length > 0 ? (
-										filteredStacks.map((s) => {
-											const isSelected = selectedStacks.includes(s.value);
-											return (
-												<button
-													key={s.value}
-													type="button"
-													onClick={() => handleStackToggle(s.value)}
+									{filteredStacks.map((s) => {
+										const isSelected = selectedStacks.includes(s.value);
+										return (
+											<button
+												key={s.value}
+												type="button"
+												onClick={() => handleStackToggle(s.value)}
+												style={{
+													display: "flex",
+													alignItems: "center",
+													gap: "10px",
+													padding: "10px 16px",
+													borderRadius: "14px",
+													border: isSelected
+														? "2px solid #6366f1"
+														: "1px solid #f3f4f6",
+													backgroundColor: isSelected ? "#f5f3ff" : "#fff",
+													cursor: "pointer",
+												}}
+											>
+												{s.imageUrl && (
+													<img
+														src={getImageUrl(s.imageUrl)}
+														alt={s.label}
+														style={{
+															width: "22px",
+															height: "22px",
+															objectFit: "contain",
+														}}
+													/>
+												)}
+												<span
 													style={{
-														display: "flex",
-														alignItems: "center",
-														justifyContent: "flex-start",
-														gap: "10px",
-														padding: "10px 16px",
-														borderRadius: "14px",
-														border: isSelected
-															? "2px solid #6366f1"
-															: "1px solid #f3f4f6",
-														backgroundColor: isSelected ? "#f5f3ff" : "#fff",
-														transition: "all 0.2s cubic-bezier(0.4, 0, 0.2, 1)",
-														cursor: "pointer",
-														width: "100%",
-														boxSizing: "border-box",
-														boxShadow: isSelected ? '0 4px 12px rgba(99, 102, 241, 0.12)' : 'none'
+														fontSize: "13.5px",
+														fontWeight: "700",
+														color: isSelected ? "#4338ca" : "#4b5563",
 													}}
 												>
-													{s.imageUrl ? (
-														<img
-															src={s.imageUrl}
-															alt={s.label}
-															style={{
-																width: "22px",
-																height: "22px",
-																objectFit: "contain",
-															}}
-														/>
-													) : (
-														<div
-															style={{
-																width: "22px",
-																height: "22px",
-																borderRadius: "50%",
-																backgroundColor: "#f3f4f6",
-															}}
-														/>
-													)}
-													<span
-														style={{
-															fontSize: "13.5px",
-															fontWeight: "700",
-															color: isSelected ? "#4338ca" : "#4b5563",
-															whiteSpace: "nowrap",
-															overflow: "hidden",
-															textOverflow: "ellipsis",
-														}}
-													>
-														{s.label}
-													</span>
-												</button>
-											);
-										})
-									) : (
-										<div
-											style={{
-												gridColumn: "1 / -1",
-												textAlign: "center",
-												padding: "40px 0",
-												color: "#9ca3af",
-												fontWeight: "500"
-											}}
-										>
-											등록된 스택이 없습니다.
-										</div>
-									)}
+													{s.label}
+												</span>
+											</button>
+										);
+									})}
 								</div>
 							</div>
 
+							{/* [복구됨] 선택된 기술 스택들을 보여주고 x버튼으로 삭제하는 영역 */}
 							{selectedStacks.length > 0 && (
 								<div className="flex flex-wrap gap-2 mt-3 p-4 bg-indigo-50/30 rounded-2xl border border-dashed border-indigo-200">
 									<span className="w-full text-[11px] font-black text-indigo-400 mb-1 uppercase tracking-widest">
@@ -488,7 +513,7 @@ export default function RecruitCreatePage() {
 											>
 												{s.imageUrl && (
 													<img
-														src={s.imageUrl}
+														src={getImageUrl(s.imageUrl)}
 														alt=""
 														className="w-4 h-4 object-contain"
 													/>
@@ -507,6 +532,7 @@ export default function RecruitCreatePage() {
 							)}
 						</section>
 
+						{/* 3. 에디터 섹션 */}
 						<section className="space-y-4">
 							<h2 className="font-bold text-lg flex items-center gap-2 text-gray-800">
 								<span className="text-white bg-indigo-600 w-6 h-6 flex justify-center items-center rounded-full text-xs">
@@ -524,9 +550,11 @@ export default function RecruitCreatePage() {
 							/>
 							<div className="bg-white rounded-xl overflow-hidden border border-gray-200">
 								<ReactQuill
+									ref={quillRef}
 									theme="snow"
 									value={content}
 									onChange={setContent}
+									modules={modules}
 									placeholder="내용을 입력해주세요."
 									className="h-80 mb-12"
 								/>
@@ -541,10 +569,7 @@ export default function RecruitCreatePage() {
 							>
 								취소
 							</button>
-							<button
-								type="submit"
-								className="sns-btn sns-btn-primary px-10"
-							>
+							<button type="submit" className="sns-btn sns-btn-primary px-10">
 								{isEditMode ? "수정하기" : "등록하기"}
 							</button>
 						</div>
