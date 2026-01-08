@@ -247,7 +247,11 @@ export default function RecruitDetailPage() {
 	};
 
 	const startReply = (comment) => {
-		setReplyTo({ id: comment.id, username: comment.author?.username });
+		setReplyTo({
+			id: comment.id,
+			username: comment.author?.username,
+			name: comment.author?.name,
+		});
 		setEditingCommentId(null);
 		setCommentInput("");
 		document.getElementById("comment-input-field")?.focus();
@@ -336,10 +340,7 @@ export default function RecruitDetailPage() {
 
 	return (
 		<div className="max-w-4xl mx-auto px-6 py-10 bg-white min-h-screen">
-			<button
-				onClick={() => navigate(-1)}
-				className="detail-back-btn"
-			>
+			<button onClick={() => navigate(-1)} className="detail-back-btn">
 				<Icon icon="mdi:arrow-left" width="20" height="20" />
 				<span>뒤로가기</span>
 			</button>
@@ -373,7 +374,7 @@ export default function RecruitDetailPage() {
 						</Avatar>
 						<div className="flex flex-col">
 							<span className="font-bold text-sm text-gray-800">
-								{recruit.username || "익명"}
+								{recruit.name || "익명"}
 							</span>
 							<span className="text-xs text-gray-400">
 								{new Date(recruit.createdAt).toLocaleDateString("ko-KR")}
@@ -495,7 +496,7 @@ export default function RecruitDetailPage() {
 				<div className="bg-gray-50 p-5 rounded-2xl flex flex-col gap-3 border border-gray-100 shadow-sm mb-10">
 					{replyTo && (
 						<div className="flex justify-between items-center px-3 py-1.5 bg-blue-50 rounded-lg text-xs font-bold text-blue-600">
-							<span>@{replyTo.username} 님에게 답글 남기는 중...</span>
+							<span>@{replyTo.name} 님에게 답글 남기는 중...</span>
 							<button
 								onClick={() => setReplyTo(null)}
 								className="hover:text-red-500"
@@ -573,7 +574,7 @@ export default function RecruitDetailPage() {
 														handleProfileClick(comment.author?.username)
 													}
 												>
-													{comment.author?.username}
+													{comment.author?.name}
 												</span>
 												<span className="text-[12px] text-gray-400">
 													{new Date(comment.createdAt).toLocaleDateString(
@@ -665,7 +666,7 @@ export default function RecruitDetailPage() {
 																handleProfileClick(child.author?.username)
 															}
 														>
-															{child.author?.username}
+															{child.author?.name}
 														</span>
 														<span className="text-[11px] text-gray-400">
 															{new Date(child.createdAt).toLocaleDateString(

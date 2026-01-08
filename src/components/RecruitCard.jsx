@@ -13,11 +13,12 @@ const RecruitCard = ({
 	const navigate = useNavigate();
 
 	const {
-		type, // 1: 스터디, 2: 프로젝트 (예시)
+		type,
 		positions = [],
 		title = "",
 		stacks = [],
-		username = "익명",
+		username, // 프로필 이동용 ID (계정명)
+		name = "익명", // 화면 표시용 사용자 실명/닉네임
 		viewCount = 0,
 		commentCount = 0,
 		status,
@@ -36,7 +37,6 @@ const RecruitCard = ({
 	// 라벨 추출 헬퍼
 	const getLabel = (optionList, value) => {
 		if (!optionList || optionList.length === 0) {
-			// 데이터 로딩 전이라면 기본 타입명 반환
 			if (String(value) === "1") return "스터디";
 			if (String(value) === "2") return "프로젝트";
 			return value;
@@ -49,7 +49,6 @@ const RecruitCard = ({
 		? new Date(deadLine).toLocaleDateString("ko-KR")
 		: "상시모집";
 
-	// 🌟 타입별 UI 테마 설정 (색상 및 아이콘)
 	const isStudy = String(type) === "1";
 	const theme = isStudy
 		? { color: "#00d4b1", bg: "#f0fffb", label: "스터디", icon: "📖" }
@@ -64,7 +63,8 @@ const RecruitCard = ({
 	};
 
 	const handleProfileClick = (e) => {
-		e.stopPropagation(); // 카드 상세 이동 방지
+		e.stopPropagation();
+		// 이동은 시스템 ID인 username을 사용
 		if (username && username !== "익명") {
 			navigate(`/profile/${username}`);
 		}
@@ -83,7 +83,7 @@ const RecruitCard = ({
 				minHeight: "380px",
 				padding: "1.5rem",
 				backgroundColor: "#fff",
-				borderRadius: "16px", // 조금 더 둥글게 수정
+				borderRadius: "16px",
 				border: "1px solid #eee",
 				transition: "all 0.2s ease-in-out",
 				boxSizing: "border-box",
@@ -102,7 +102,6 @@ const RecruitCard = ({
 					: "0 2px 10px rgba(0,0,0,0.02)";
 			}}
 		>
-			{/* 북마크 버튼 */}
 			<button
 				type="button"
 				onClick={(e) => {
@@ -128,7 +127,6 @@ const RecruitCard = ({
 				/>
 			</button>
 
-			{/* 마감 오버레이 */}
 			{isExpired && (
 				<div
 					style={{
@@ -161,7 +159,6 @@ const RecruitCard = ({
 				</div>
 			)}
 
-			{/* 상단: 타입 태그 및 마감일 */}
 			<div style={{ flexShrink: 0 }}>
 				<div
 					style={{
@@ -214,7 +211,6 @@ const RecruitCard = ({
 				</div>
 			</div>
 
-			{/* 제목 */}
 			<h3
 				style={{
 					fontSize: "1.1rem",
@@ -235,7 +231,6 @@ const RecruitCard = ({
 				{title}
 			</h3>
 
-			{/* 메인 콘텐츠: 포지션 & 스택 */}
 			<div
 				style={{
 					flex: 1,
@@ -245,7 +240,6 @@ const RecruitCard = ({
 					overflow: "hidden",
 				}}
 			>
-				{/* 포지션 리스트 */}
 				{positions.length > 0 && (
 					<div style={{ display: "flex", flexWrap: "wrap", gap: "6px" }}>
 						{positions.slice(0, 3).map((pos, idx) => (
@@ -278,7 +272,6 @@ const RecruitCard = ({
 					</div>
 				)}
 
-				{/* 기술 스택 아이콘 */}
 				{stacks.length > 0 && (
 					<div style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
 						{stacks.slice(0, 6).map((stack, idx) => (
@@ -329,7 +322,6 @@ const RecruitCard = ({
 				)}
 			</div>
 
-			{/* 푸터: 작성자 및 카운트 */}
 			<div style={{ flexShrink: 0 }}>
 				<hr
 					style={{
@@ -346,12 +338,12 @@ const RecruitCard = ({
 					}}
 				>
 					<div
-						onClick={handleProfileClick} // 클릭 시 이동
+						onClick={handleProfileClick}
 						style={{
 							display: "flex",
 							alignItems: "center",
 							gap: "8px",
-							cursor: "pointer", // 포인터 커서 추가
+							cursor: "pointer",
 						}}
 					>
 						{profileImageUrl ? (
@@ -388,7 +380,8 @@ const RecruitCard = ({
 								color: "#495057",
 							}}
 						>
-							{username}
+							{/* 🌟 수정: username 대신 name을 보여줍니다. */}
+							{name}
 						</span>
 					</div>
 					<div style={{ display: "flex", gap: "10px", color: "#adb5bd" }}>
