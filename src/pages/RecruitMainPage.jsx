@@ -160,20 +160,27 @@ const RecruitMainPage = () => {
 		<div className="recruit-page">
 			<div className="recruit-container">
 				<section className="recruit-hero">
-					<div className="recruit-hero-badge">총 {totalElements}개의 프로젝트</div>
+					<div className="recruit-hero-badge">
+						총 {totalElements}개의 프로젝트
+					</div>
 					<h1 className="recruit-hero-title">
 						함께 성장하는
 						<br />
-						<span className="recruit-hero-title-accent">최고의 팀</span>을 만나보세요
+						<span className="recruit-hero-title-accent">최고의 팀</span>을
+						만나보세요
 					</h1>
 					<p className="recruit-hero-subtitle">
-						사이드 프로젝트부터 창업까지. 개발자, 디자이너, 기획자가 모이는 곳에서
+						사이드 프로젝트부터 창업까지. 개발자, 디자이너, 기획자가 모이는
+						곳에서
 						<br />
 						당신의 아이디어를 실현할 동료를 찾아보세요.
 					</p>
 
 					<div className="recruit-hero-actions">
-						<button className="recruit-hero-primary" onClick={() => navigate("/recruits/create")}>
+						<button
+							className="recruit-hero-primary"
+							onClick={() => navigate("/recruits/create")}
+						>
 							팀원 모집하기 <span aria-hidden="true">→</span>
 						</button>
 						<button
