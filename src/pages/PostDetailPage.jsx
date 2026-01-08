@@ -156,12 +156,23 @@ const PostDetailPage = () => {
     }
   };
 
+  const getDisplayName = (author) =>
+    author?.name || author?.username || "";
+
+  // 멘션 프리필용 토큰
+  // - 공백이 포함되면 현재 멘션 하이라이트 정규식(@단어)과 안 맞을 수 있어 username으로 폴백
+  const getMentionToken = (author) => {
+    const n = String(author?.name || "").trim();
+    if (n && /^[A-Za-z0-9_가-힣.-]+$/.test(n)) return n;
+    return String(author?.username || "").trim();
+  };
+
   // 답글(대댓글) 작성 시작
   // - 댓글에 답글: parent = comment.id
   // - 대댓글에 답글: depth는 더 늘리지 않으므로 parent = reply.parentCommentId (부모 댓글)
   // - 멘션은 클릭한 대상(댓글/대댓글)의 작성자를 @로 프리필
   const startReply = (target, parentIdOverride = null) => {
-    const uname = target?.author?.username || target?.author?.name || "";
+    const uname = getMentionToken(target?.author);
     const targetUserId = target?.author?.id ?? null;
     const parentId = parentIdOverride ?? target?.id ?? null;
     setReplyingToId(parentId);
@@ -329,7 +340,7 @@ const PostDetailPage = () => {
 
   const renderAuthor = (author) => {
     const username = author?.username;
-    const label = username ? `${username}` : author?.name || "";
+    const label = getDisplayName(author);
     const avatarSrc = author?.profileImageUrl
       ? getImageUrl(author.profileImageUrl)
       : "https://cdn-icons-png.flaticon.com/512/149/149071.png";
