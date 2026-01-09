@@ -1,8 +1,10 @@
-# 🚀 DevSo (Developer’s Social Network)
+<div align="center">
+  
 
-> "개발자를 연결하고, 함께 성장하는 공간" > 개발자 커뮤니티 SNS와 팀원 모집 플랫폼을 하나로 통합한 올인원 네트워킹 서비스입니다.
+  # <img src="./public/logo.png" width="25" alt="DevSo Logo"/> DevSo (Developer’s Social Network)
 
----
+  > **"개발자를 연결하고, 함께 성장하는 공간"** > 개발자 커뮤니티 SNS와 팀원 모집 플랫폼을 하나로 통합한 올인원 네트워킹 서비스입니다.
+</div>
 
 ## 📅 프로젝트 정보
 
